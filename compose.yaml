@@ -1,0 +1,7 @@
+﻿services:
+  anyfood-dotnet:
+    image: anyfood-dotnet
+    build:
+      context: .
+      dockerfile: Dockerfile
+
