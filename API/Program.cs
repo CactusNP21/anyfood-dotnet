@@ -2,9 +2,15 @@ using System.Text;
 using API.Middleware;
 using Application.Auth.Interfaces;
 using Application.Auth.Services;
+using Application.Categories.Interfaces;
+using Application.Categories.Services;
+using Application.Users.Interfaces;
+using Application.Users.Services;
 using Domain.Entities;
+using Infrastructure.Categories;
 using Infrastructure.Identity;
 using Infrastructure.Persistance;
+using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -71,9 +77,21 @@ builder.Services.AddCors(options =>
 // ── Application Services ───────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// ── Categories ─────────────────────────────────────────────────────────────────
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 // ── Build ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();
+
+// ── Seed ───────────────────────────────────────────────────────────────────────
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    await RoleSeeder.SeedAsync(roleManager);
+}
 
 if (app.Environment.IsDevelopment())
 {

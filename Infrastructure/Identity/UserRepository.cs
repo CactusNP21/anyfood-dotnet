@@ -12,6 +12,9 @@ public class UserRepository : IUserRepository
     {
         this.userManager = userManager;
     }
+    
+    public Task<User?> FindByIdAsync(string id)
+        => userManager.FindByIdAsync(id);
 
     public Task<User?> FindByUsernameAsync(string username)
         => userManager.FindByNameAsync(username);

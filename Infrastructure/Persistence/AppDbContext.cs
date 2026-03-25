@@ -9,6 +9,11 @@ public class AppDbContext : IdentityDbContext<User>
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
+    
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<ProductPriceHistory> ProductPriceHistories => Set<ProductPriceHistory>();
+
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

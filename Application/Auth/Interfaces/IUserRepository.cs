@@ -4,6 +4,7 @@ namespace Application.Auth.Interfaces;
 
 public interface IUserRepository
 {
+    Task<User?> FindByIdAsync(string id);
     Task<User?> FindByUsernameAsync(string username);
     Task<User?> FindByEmailAsync(string email);
     Task<User?> FindByRefreshTokenAsync(string refreshToken);
