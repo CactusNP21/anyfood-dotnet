@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Persistance;
+namespace Infrastructure.Persistence;
 
 public class AppDbContext : IdentityDbContext<User>
 {
@@ -10,7 +10,7 @@ public class AppDbContext : IdentityDbContext<User>
     {
     }
     
-    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Domain.Entities.Product> Products => Set<Domain.Entities.Product>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<ProductPriceHistory> ProductPriceHistories => Set<ProductPriceHistory>();
 

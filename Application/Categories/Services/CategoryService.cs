@@ -71,6 +71,6 @@ public class CategoryService : ICategoryService
     {
         Id = category.Id,
         Name = category.Name,
-        ProductCount = category.Products.Count,
+        ProductCount = 0,
     };
 }

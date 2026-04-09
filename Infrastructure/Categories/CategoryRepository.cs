@@ -1,6 +1,6 @@
 using Application.Categories.Interfaces;
 using Domain.Entities;
-using Infrastructure.Persistance;
+using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Categories;
@@ -16,13 +16,11 @@ public class CategoryRepository : ICategoryRepository
 
     public async Task<IReadOnlyList<Category>> GetAllAsync()
         => await context.Categories
-            .Include(c => c.Products)
             .OrderBy(c => c.Name)
             .ToListAsync();
 
     public async Task<Category?> GetByIdAsync(int id)
         => await context.Categories
-            .Include(c => c.Products)
             .FirstOrDefaultAsync(c => c.Id == id);
 
     public async Task<Category?> GetByNameAsync(string name)

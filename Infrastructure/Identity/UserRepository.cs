@@ -13,6 +13,9 @@ public class UserRepository : IUserRepository
         this.userManager = userManager;
     }
     
+    public Task<IList<string>> GetRolesAsync(User user)
+        => userManager.GetRolesAsync(user);
+    
     public Task<User?> FindByIdAsync(string id)
         => userManager.FindByIdAsync(id);
 

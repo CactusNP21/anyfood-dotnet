@@ -1,21 +1,24 @@
+using System.Security.Claims;
 using System.Text;
 using API.Middleware;
 using Application.Auth.Interfaces;
 using Application.Auth.Services;
 using Application.Categories.Interfaces;
 using Application.Categories.Services;
+using Application.Products.Interfaces;
+using Application.Products.Services;
 using Application.Users.Interfaces;
 using Application.Users.Services;
 using Domain.Entities;
 using Infrastructure.Categories;
 using Infrastructure.Identity;
-using Infrastructure.Persistance;
+using Infrastructure.Persistence;
+using Infrastructure.Products;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +63,7 @@ builder.Services.AddAuthentication(options =>
             ValidAudience = jwtSettings["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSettings["Secret"]!)),
+            RoleClaimType = ClaimTypes.Role
         };
     });
 
@@ -69,7 +73,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Angular", policy =>
-        policy.WithOrigins(builder.Configuration["Cors:AllowedOrigin"]!)
+        policy.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
@@ -83,6 +87,10 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
+// ── Products ───────────────────────────────────────────────────────────────────
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+
 // ── Build ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
@@ -93,14 +101,14 @@ using (var scope = app.Services.CreateScope())
     await RoleSeeder.SeedAsync(roleManager);
 }
 
-if (app.Environment.IsDevelopment())
-{
+// if (app.Environment.IsDevelopment())
+// {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+// }
+app.UseCors("Angular");
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseCors("Angular");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -8,15 +8,8 @@ namespace API.Controllers;
 [ApiController]
 [Route("api/categories")]
 [Authorize(Roles = "Admin")]
-public class CategoryController : ControllerBase
+public class CategoryController(ICategoryService categoryService) : ControllerBase
 {
-    private readonly ICategoryService categoryService;
-
-    public CategoryController(ICategoryService categoryService)
-    {
-        this.categoryService = categoryService;
-    }
-
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<CategoryDto>>> GetAll()
     {

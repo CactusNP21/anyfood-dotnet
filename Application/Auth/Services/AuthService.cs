@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Application.Auth.DTOs;
@@ -74,7 +75,7 @@ public class AuthService : IAuthService
 
     private async Task<LoginResponse> GenerateLoginResponseAsync(User user)
     {
-        var accessToken = GenerateAccessToken(user);
+        var accessToken = await GenerateAccessToken(user);
         var refreshToken = GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
@@ -99,17 +100,19 @@ public class AuthService : IAuthService
         };
     }
 
-    private string GenerateAccessToken(User user)
+    private async Task<string> GenerateAccessToken(User user)
     {
         var jwtSettings = configuration.GetSection("Jwt");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]!));
-
+        var roles = await userRepository.GetRolesAsync(user);
+        
         var claims = new Dictionary<string, object>
         {
             [JwtRegisteredClaimNames.Sub] = user.Id,
             [JwtRegisteredClaimNames.UniqueName] = user.UserName!,
             [JwtRegisteredClaimNames.Email] = user.Email!,
             [JwtRegisteredClaimNames.Jti] = Guid.NewGuid().ToString(),
+            [ClaimTypes.Role] = roles.ToArray()
         };
 
         var descriptor = new SecurityTokenDescriptor

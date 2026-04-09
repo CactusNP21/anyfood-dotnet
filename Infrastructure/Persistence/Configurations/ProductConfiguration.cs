@@ -2,7 +2,7 @@ using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Persistance.Configurations;
+namespace Infrastructure.Persistence.Configurations;
 
 public class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
@@ -38,7 +38,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
 
         // ── Relationships ──────────────────────────────────────────────────────
         builder.HasOne(p => p.Category)
-            .WithMany(c => c.Products)
+            .WithMany()
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
