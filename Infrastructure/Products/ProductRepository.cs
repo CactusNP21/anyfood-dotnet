@@ -11,7 +11,10 @@ public class ProductRepository(AppDbContext context): IProductRepository
    => await context.Products.ToListAsync();
 
     public async Task<Product?> GetByIdAsync(int id)
-    => await context.Products.FindAsync(id);
+    => await context.Products.
+        Include(p => p.Category).
+    Include(p => p.PriceHistory).
+        FirstOrDefaultAsync(p => p.Id == id);
 
     public async Task<Product?> GetByNameAsync(string name)
      => await context.Products.FirstOrDefaultAsync(p => p.Name == name);

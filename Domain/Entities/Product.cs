@@ -1,6 +1,8 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
-public class Product
+public class Product : BaseEntity
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -10,7 +12,13 @@ public class Product
     public decimal Carbs { get; set; }
     public int? GlycemicIndex { get; set; }
     public string? ImageUrl { get; set; }
-    public decimal Price { get; set; }
+
+    public decimal Price
+    {
+        get;
+        set;
+    }
+
     public ICollection<ProductPriceHistory> PriceHistory { get; set; } = [];
     public bool IsSystem { get; set; }
 

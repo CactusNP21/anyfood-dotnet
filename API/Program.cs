@@ -5,6 +5,7 @@ using Application.Auth.Interfaces;
 using Application.Auth.Services;
 using Application.Categories.Interfaces;
 using Application.Categories.Services;
+using Application.Products.EventHandlers;
 using Application.Products.Interfaces;
 using Application.Products.Services;
 using Application.Users.Interfaces;
@@ -13,6 +14,7 @@ using Domain.Entities;
 using Infrastructure.Categories;
 using Infrastructure.Identity;
 using Infrastructure.Persistence;
+using Infrastructure.Persistence.Interceptors;
 using Infrastructure.Products;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -28,8 +30,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // ── Database ───────────────────────────────────────────────────────────────────
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.AddScoped<ProductPriceHistoryInterceptor>();
+
+builder.Services.AddDbContext<AppDbContext>((sp, options) =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default"))
+        .AddInterceptors(sp.GetRequiredService<ProductPriceHistoryInterceptor>())
+    );
 
 // ── Identity ───────────────────────────────────────────────────────────────────
 builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -90,6 +97,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 // ── Products ───────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductPriceHistoryRepository, ProductPriceHistoryRepository>();
 
 // ── Build ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();

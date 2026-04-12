@@ -13,7 +13,7 @@ public class ProductDto
     public int? GlycemicIndex { get; set; }
     public string? ImageUrl { get; set; }
     public required decimal Price { get; set; }
-    public ICollection<ProductPriceHistory> PriceHistory { get; set; } = [];
+    public ICollection<ProductPriceHistoryDto> PriceHistory { get; set; } = [];
     public bool IsSystem { get; set; }
 
     public int CategoryId { get; set; }
@@ -21,4 +21,11 @@ public class ProductDto
 
     public string? UserId { get; set; }
     public User? User { get; set; }
+}
+
+public class ProductPriceHistoryDto
+{
+    public int Id { get; set; }
+    public decimal Price { get; set; }
+    public DateTime RecordedAt { get; set; }
 }
