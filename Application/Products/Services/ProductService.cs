@@ -34,8 +34,16 @@ public class ProductService(IProductRepository productRepository): IProductServi
         return updated.Adapt<ProductDto>();
     }
 
-    public Task DeleteAsync(int id)
+    public  async Task DeleteAsync(int id)
     {
-        throw new NotImplementedException();
+        var category = await productRepository.GetByIdAsync(id)
+                       ?? throw new KeyNotFoundException("Продукт не знайдено.");
+
+        var hasProducts = await productRepository.HasRecipesAsync(id);
+        if (hasProducts)
+            throw new InvalidOperationException(
+                "Неможливо видалити категорію, до якої прив'язані продукти. Спочатку перенесіть або видаліть продукти.");
+
+        await productRepository.DeleteAsync(category);
     }
 }

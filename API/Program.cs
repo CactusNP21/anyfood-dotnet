@@ -8,6 +8,9 @@ using Application.Categories.Services;
 using Application.Products.EventHandlers;
 using Application.Products.Interfaces;
 using Application.Products.Services;
+using Application.RecipeCategories.Interfaces;
+using Application.Recipes.Interfaces;
+using Application.Recipes.Services;
 using Application.Users.Interfaces;
 using Application.Users.Services;
 using Domain.Entities;
@@ -16,6 +19,8 @@ using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Interceptors;
 using Infrastructure.Products;
+using Infrastructure.RecipeCategory;
+using Infrastructure.Recipes;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -82,7 +87,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("Angular", policy =>
         policy.AllowAnyOrigin()
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+        );
 });
 
 // ── Application Services ───────────────────────────────────────────────────────
@@ -98,6 +104,14 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IProductPriceHistoryRepository, ProductPriceHistoryRepository>();
+
+// ── RecipeCategories ─────────────────────────────────────────────────────────────────
+builder.Services.AddScoped<IRecipeCategoryRepository, RecipeCategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+// ── Recipe ─────────────────────────────────────────────────────────────────
+builder.Services.AddScoped<IRecipeRepository, RecipesRepository>();
+builder.Services.AddScoped<IRecipeService, RecipeService>();
 
 // ── Build ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();
@@ -120,5 +134,15 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+app.Use(async (ctx, next) =>
+{
+    Console.WriteLine($">>> {ctx.Request.Method} {ctx.Request.Path}");
+    await next();
+    Console.WriteLine($"<<< {ctx.Response.StatusCode}");
+});
+
+app.UseCors("Angular");
+// ...
 
 app.Run();

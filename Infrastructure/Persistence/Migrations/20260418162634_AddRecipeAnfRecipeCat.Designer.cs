@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260418162634_AddRecipeAnfRecipeCat")]
+    partial class AddRecipeAnfRecipeCat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -89,6 +92,9 @@ namespace Infrastructure.Persistence.Migrations
                         .HasPrecision(7, 2)
                         .HasColumnType("numeric(7,2)");
 
+                    b.Property<int?>("RecipeId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
@@ -97,6 +103,8 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("IsSystem");
+
+                    b.HasIndex("RecipeId");
 
                     b.HasIndex("UserId");
 
@@ -201,24 +209,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("RecipeId");
 
                     b.ToTable("RecipeCategories");
-                });
-
-            modelBuilder.Entity("Domain.Entities.RecipeProduct", b =>
-                {
-                    b.Property<int>("RecipeId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<float>("Weight")
-                        .HasColumnType("real");
-
-                    b.HasKey("RecipeId", "ProductId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("RecipeProducts");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -441,6 +431,10 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.Recipe", null)
+                        .WithMany("Products")
+                        .HasForeignKey("RecipeId");
+
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -476,25 +470,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasOne("Domain.Entities.Recipe", null)
                         .WithMany("RecipeCategories")
                         .HasForeignKey("RecipeId");
-                });
-
-            modelBuilder.Entity("Domain.Entities.RecipeProduct", b =>
-                {
-                    b.HasOne("Domain.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Recipe", "Recipe")
-                        .WithMany("RecipeProducts")
-                        .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("Recipe");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -555,9 +530,9 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Recipe", b =>
                 {
-                    b.Navigation("RecipeCategories");
+                    b.Navigation("Products");
 
-                    b.Navigation("RecipeProducts");
+                    b.Navigation("RecipeCategories");
                 });
 #pragma warning restore 612, 618
         }

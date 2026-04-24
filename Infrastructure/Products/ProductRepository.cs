@@ -16,6 +16,11 @@ public class ProductRepository(AppDbContext context): IProductRepository
     Include(p => p.PriceHistory).
         FirstOrDefaultAsync(p => p.Id == id);
 
+    public async Task<IReadOnlyList<Product>> GetByBatchIdAsync(List<int> categoryIds)
+    => await context.Products
+        .AsNoTracking()
+        .Where(p => ((IEnumerable<int>)categoryIds).Contains(p.Id))
+        .ToListAsync();
     public async Task<Product?> GetByNameAsync(string name)
      => await context.Products.FirstOrDefaultAsync(p => p.Name == name);
 
@@ -38,4 +43,9 @@ public class ProductRepository(AppDbContext context): IProductRepository
         context.Products.Remove(product);
         return context.SaveChangesAsync();
     }
+
+    public async Task<bool> HasRecipesAsync(int id)
+    
+        => await context.RecipeProducts.AnyAsync(rp => rp.ProductId == id);
+    
 }

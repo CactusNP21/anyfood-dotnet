@@ -15,6 +15,7 @@ public class ProductDto
     public required decimal Price { get; set; }
     public ICollection<ProductPriceHistoryDto> PriceHistory { get; set; } = [];
     public bool IsSystem { get; set; }
+    public float? Weight { get; set; }
 
     public int CategoryId { get; set; }
     public Category Category { get; set; } = null!;

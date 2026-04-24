@@ -13,7 +13,9 @@ public class UpdateProductRequest
 
     [Required(ErrorMessage = "Калорії обов'язкові.")]
     public decimal Calories { get; set; }
-
+    
+    [Required]
+    public string ImageUrl { get; set; }
     [Required]
     public decimal Protein { get; set; }
     [Required]
