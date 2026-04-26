@@ -25,6 +25,8 @@ public class Product : BaseEntity
     public int CategoryId { get; set; }
     public Category Category { get; set; } = null!;
 
+    public ICollection<ProductVersion> Versions { get; set; } = [];
+    
     public string? UserId { get; set; }
     public User? User { get; set; }
 }

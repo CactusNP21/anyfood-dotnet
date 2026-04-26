@@ -1,5 +1,4 @@
-﻿using Domain.Common;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +13,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ProductPriceHistory> ProductPriceHistories => Set<ProductPriceHistory>();
     public DbSet<RecipeProduct> RecipeProducts => Set<RecipeProduct>();
     public DbSet<SavedRecipe> SavedRecipes => Set<SavedRecipe>();
-    
+    public DbSet<ProductVersion> ProductVersions => Set<ProductVersion>();
+    public DbSet<RecipeVersion> RecipeVersions => Set<RecipeVersion>();
+    public DbSet<RecipeVersionIngredient> RecipeVersionIngredients => Set<RecipeVersionIngredient>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
