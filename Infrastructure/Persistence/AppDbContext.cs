@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<ProductPriceHistory> ProductPriceHistories => Set<ProductPriceHistory>();
     public DbSet<RecipeProduct> RecipeProducts => Set<RecipeProduct>();
+    public DbSet<SavedRecipe> SavedRecipes => Set<SavedRecipe>();
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -21,6 +22,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         builder.Entity<RecipeProduct>()
             .HasKey(rp => new { rp.RecipeId, rp.ProductId });
 
+        builder.Entity<SavedRecipe>()
+            .HasKey(sr => new { sr.RecipeId, sr.UserId });
+        
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 }

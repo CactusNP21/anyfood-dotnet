@@ -3,4 +3,7 @@ using Domain.Entities;
 
 namespace Application.Recipes.Interfaces;
 
-public interface IRecipeRepository : IBaseRepository<Recipe>;
+public interface IRecipeRepository : IBaseRepository<Recipe>
+{
+    Task SaveRecipeAsync(int recipeId, string userId);
+};

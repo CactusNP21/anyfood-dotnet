@@ -31,6 +31,7 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
 
         return dto;
     }
+    
 
     public async Task<RecipeDto> CreateAsync(CreateRecipeRequest request)
     {
@@ -85,6 +86,13 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
     {
         throw new NotImplementedException();
     }
+
+    public async Task SaveRecipe(int recipeId, string userId)
+    {
+        _ = await repository.GetByIdAsync(recipeId) ?? throw new KeyNotFoundException();
+        await repository.SaveRecipeAsync(recipeId, userId);
+    }
+
 
     public async Task DeleteAsync(int id)
     {

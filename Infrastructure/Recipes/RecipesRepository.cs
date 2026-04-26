@@ -33,6 +33,16 @@ public class RecipesRepository(AppDbContext ctx): IRecipeRepository
         await ctx.SaveChangesAsync();
     }
 
+    public async Task SaveRecipeAsync(int recipeId, string userId)
+    { 
+        ctx.SavedRecipes.Add(new SavedRecipe
+        {
+            UserId = userId,
+            RecipeId = recipeId,
+        });
+        await ctx.SaveChangesAsync();
+    }
+    
     public async Task DeleteAsync(Recipe recipe)
     {
         ctx.Recipes.Remove(recipe);

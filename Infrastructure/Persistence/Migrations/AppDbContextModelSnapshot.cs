@@ -221,6 +221,19 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("RecipeProducts");
                 });
 
+            modelBuilder.Entity("Domain.Entities.SavedRecipe", b =>
+                {
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.HasKey("RecipeId", "UserId");
+
+                    b.ToTable("SavedRecipes");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.Property<string>("Id")
@@ -493,6 +506,17 @@ namespace Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+
+                    b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("Domain.Entities.SavedRecipe", b =>
+                {
+                    b.HasOne("Domain.Entities.Recipe", "Recipe")
+                        .WithMany()
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Recipe");
                 });
