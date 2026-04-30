@@ -79,6 +79,22 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
         };
 
         var created = await repository.CreateAsync(recipe);
+        
+        // Для кожного інгредієнта беремо версію 1 продукту
+        var versionIngredients = new List<RecipeVersionIngredient>();
+
+        foreach (var rp in created.RecipeProducts)
+        {
+            var productVersion = await productRepository.GetLatestVersionAsync(rp.ProductId)
+                                 ?? throw new InvalidOperationException(
+                                     $"Продукт з id={rp.ProductId} не має жодної версії.");
+
+            versionIngredients.Add(new RecipeVersionIngredient
+            {
+                ProductVersionId = productVersion.Id,
+                Weight = rp.Weight,
+            });
+        }
         return created.Adapt<RecipeDto>();
     }
 

@@ -5,6 +5,7 @@ using Application.Auth.Interfaces;
 using Application.Auth.Services;
 using Application.Categories.Interfaces;
 using Application.Categories.Services;
+using Application.Mapping;
 using Application.Products.EventHandlers;
 using Application.Products.Interfaces;
 using Application.Products.Services;
@@ -28,6 +29,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Додати одразу після var builder = WebApplication.CreateBuilder(args);
+MappingConfig.Configure();
 
 // ── Controllers ────────────────────────────────────────────────────────────────
 builder.Services.AddControllers();

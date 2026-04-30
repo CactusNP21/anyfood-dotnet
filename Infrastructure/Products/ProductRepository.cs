@@ -1,6 +1,7 @@
 using Application.Products.Interfaces;
 using Domain.Entities;
 using Infrastructure.Persistence;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Products;
@@ -27,6 +28,8 @@ public class ProductRepository(AppDbContext context): IProductRepository
     public async Task<Product> CreateAsync(Product product)
     {
         context.Products.Add(product);
+        context.ProductVersions.Add(product.Adapt<ProductVersion>());
+        
         await context.SaveChangesAsync();
         return product;
     }
@@ -47,5 +50,30 @@ public class ProductRepository(AppDbContext context): IProductRepository
     public async Task<bool> HasRecipesAsync(int id)
     
         => await context.RecipeProducts.AnyAsync(rp => rp.ProductId == id);
+
+    // ── Версіонування ────────────────────────────────────────────────────────
+
+    public async Task<int> GetLatestVersionNumberAsync(int productId)
+        => await context.ProductVersions
+            .Where(pv => pv.ProductId == productId)
+            .Select(pv => pv.VersionNumber)
+            .DefaultIfEmpty(0)
+            .MaxAsync();
+
+    public async Task<ProductVersion> CreateVersionAsync(ProductVersion version)
+    {
+        context.ProductVersions.Add(version);
+        await context.SaveChangesAsync();
+        return version;
+    }
+
+    public async Task<ProductVersion?> GetProductVersionByIdAsync(int productVersionId)
+        => await context.ProductVersions
+            .FirstOrDefaultAsync(pv => pv.Id == productVersionId);
     
+    public async Task<ProductVersion?> GetLatestVersionAsync(int productId)
+        => await context.ProductVersions
+            .Where(pv => pv.ProductId == productId)
+            .OrderByDescending(pv => pv.VersionNumber)
+            .FirstOrDefaultAsync();
 }
