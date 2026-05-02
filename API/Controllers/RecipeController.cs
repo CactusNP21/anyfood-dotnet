@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers;
 
 [ApiController]
-[Route("api/recipes")]
+[Route("api/recipe")]
 public class RecipeController(IRecipeService service) : ControllerBase
 {
     [HttpGet]

@@ -28,7 +28,10 @@ public class ProductRepository(AppDbContext context): IProductRepository
     public async Task<Product> CreateAsync(Product product)
     {
         context.Products.Add(product);
-        context.ProductVersions.Add(product.Adapt<ProductVersion>());
+        
+        var productVersion = product.Adapt<ProductVersion>();
+        productVersion.Product = product;
+        context.ProductVersions.Add(productVersion);
         
         await context.SaveChangesAsync();
         return product;
@@ -36,9 +39,14 @@ public class ProductRepository(AppDbContext context): IProductRepository
 
     public async Task<Product> UpdateAsync(Product product)
     {
-        context.Products.Update(product);
-        await context.SaveChangesAsync();
+        var latestVersion = await GetLatestVersionNumberAsync(product.Id);
+        var productVersion = product.Adapt<ProductVersion>();
+        productVersion.VersionNumber = latestVersion + 1;
+        context.ProductVersions.Add(productVersion);
+
+        await context.SaveChangesAsync(); // збереже і зміни продукту і нову версію
         return product;
+
     }
 
     public Task DeleteAsync(Product product)
@@ -56,9 +64,9 @@ public class ProductRepository(AppDbContext context): IProductRepository
     public async Task<int> GetLatestVersionNumberAsync(int productId)
         => await context.ProductVersions
             .Where(pv => pv.ProductId == productId)
+            .OrderByDescending(pv => pv.VersionNumber)
             .Select(pv => pv.VersionNumber)
-            .DefaultIfEmpty(0)
-            .MaxAsync();
+            .FirstOrDefaultAsync(); // повертає 0 якщо версій немає
 
     public async Task<ProductVersion> CreateVersionAsync(ProductVersion version)
     {

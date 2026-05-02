@@ -2,6 +2,7 @@ using Application.Products.DTOs;
 using Application.Products.Interfaces;
 using Application.Recipes.DTOs;
 using Application.Recipes.Interfaces;
+using Application.Recipes.Models;
 using Domain.Entities;
 using Mapster;
 
@@ -31,15 +32,9 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
 
         return dto;
     }
-    
-
-    public async Task<RecipeDto> CreateAsync(CreateRecipeRequest request)
+    private NutritionPer100G CalculateNutritionPer100G(
+        CreateRecipeRequest request, IReadOnlyList<Product> products)
     {
-        var productIds = request.RecipeProducts.Select(i => i.ProductId).ToList();
-        var products = await productRepository.GetByBatchIdAsync(productIds);
-
-        var totalWeight = request.RecipeProducts.Sum(r => r.Weight);
-          
         float calories = 0, protein = 0, fat = 0, carbs = 0, totalPrice = 0;
 
         foreach (var ingredient in request.RecipeProducts)
@@ -54,47 +49,52 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
             totalPrice += (float)product.Price    * ratio;
         }
 
-        // Перераховуємо на 100г рецепту
-        var per100 = 100f / totalWeight;
-        var recipe = new Recipe
+        var per100 = 100f / request.RecipeProducts.Sum(r => r.Weight);
+
+        return new NutritionPer100G(
+            calories * per100, protein * per100,
+            fat * per100, carbs * per100, totalPrice * per100);
+    }
+
+    public async Task<RecipeDto> CreateAsync(CreateRecipeRequest request)
+    {
+        var productIds = request.RecipeProducts.Select(i => i.ProductId).ToList();
+        var products = await productRepository.GetByBatchIdAsync(productIds);
+
+        // Знаходимо актуальні версії всіх продуктів одразу
+        var productVersions = new Dictionary<int, ProductVersion>();
+        foreach (var productId in productIds)
         {
-            Id = 0,
-            Name = request.Name,
-            ImageUrl = request.ImageUrl,
-            Portions = request.Portions,
-            Description = request.Description,
-            Duration = request.Duration,
-            UserId = request.UserId,
-            RecipeProducts = request.RecipeProducts.Select(rp => new RecipeProduct
-            {
-                ProductId = rp.ProductId,
-                Weight = rp.Weight
-            }).ToList(),
-            RecipeCategories = request.RecipeCategories.Adapt<ICollection<RecipeCategory>>(),
-            Price    = totalPrice * per100,
-            Calories = calories   * per100,
-            Protein  = protein    * per100,
-            Fat      = fat        * per100,
-            Carbs    = carbs      * per100,
-        };
-
-        var created = await repository.CreateAsync(recipe);
-        
-        // Для кожного інгредієнта беремо версію 1 продукту
-        var versionIngredients = new List<RecipeVersionIngredient>();
-
-        foreach (var rp in created.RecipeProducts)
-        {
-            var productVersion = await productRepository.GetLatestVersionAsync(rp.ProductId)
-                                 ?? throw new InvalidOperationException(
-                                     $"Продукт з id={rp.ProductId} не має жодної версії.");
-
-            versionIngredients.Add(new RecipeVersionIngredient
-            {
-                ProductVersionId = productVersion.Id,
-                Weight = rp.Weight,
-            });
+            var version = await productRepository.GetLatestVersionAsync(productId)
+                          ?? throw new InvalidOperationException(
+                              $"Продукт з id={productId} не має жодної версії.");
+            productVersions.Add(productId, version);
         }
+        
+        var nutrition = CalculateNutritionPer100G(request, products);
+
+        var recipe = request.Adapt<Recipe>();
+        nutrition.Adapt(recipe); // накладаємо БЖВ на існуючий об'єкт
+        
+        var recipeVersion = new RecipeVersion
+        {
+            Recipe = recipe,
+            VersionNumber = 1,
+            Ingredients = request.RecipeProducts.Select(rp => new RecipeVersionIngredient
+            {
+                ProductVersionId = productVersions[rp.ProductId].Id,
+                Weight = rp.Weight,
+            }).ToList(),
+        };
+        request.Adapt(recipeVersion); // копіює Name, Description, ImageUrl, Portions, Duration
+        recipeVersion.Calories = nutrition.Calories;
+        recipeVersion.Protein  = nutrition.Protein;
+        recipeVersion.Fat      = nutrition.Fat;
+        recipeVersion.Carbs    = nutrition.Carbs;
+        recipeVersion.Price    = nutrition.Price;
+        
+        var created = await repository.CreateRecipeVersionAsync(recipe, recipeVersion);
+        
         return created.Adapt<RecipeDto>();
     }
 

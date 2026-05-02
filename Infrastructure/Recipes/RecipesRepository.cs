@@ -1,6 +1,7 @@
 using Application.Recipes.Interfaces;
 using Domain.Entities;
 using Infrastructure.Persistence;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Recipes;
@@ -27,6 +28,8 @@ public class RecipesRepository(AppDbContext ctx): IRecipeRepository
         await ctx.SaveChangesAsync();
         return recipe;
     }
+    
+    
 
     public async Task UpdateAsync(Recipe recipe)
     {
@@ -42,6 +45,14 @@ public class RecipesRepository(AppDbContext ctx): IRecipeRepository
             RecipeId = recipeId,
         });
         await ctx.SaveChangesAsync();
+    }
+
+    public async Task<Recipe> CreateRecipeVersionAsync(Recipe recipe, RecipeVersion recipeVersion)
+    {
+        ctx.Recipes.Add(recipe);
+        ctx.RecipeVersions.Add(recipeVersion);
+        await ctx.SaveChangesAsync();
+        return recipe;
     }
 
     public async Task DeleteAsync(Recipe recipe)
