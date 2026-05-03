@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="DataSourcePerFileMappings">
-    <file url="file://$PROJECT_DIR$/Infrastructure/Persistence/Scripts/Triggers/recalculate_recipe_prices.sql" value="2a2c6201-d52a-4baf-b8dc-68d7f2db1730" />
-  </component>
-</project>

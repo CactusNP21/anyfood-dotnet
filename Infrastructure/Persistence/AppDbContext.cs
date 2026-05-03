@@ -16,6 +16,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ProductVersion> ProductVersions => Set<ProductVersion>();
     public DbSet<RecipeVersion> RecipeVersions => Set<RecipeVersion>();
     public DbSet<RecipeVersionIngredient> RecipeVersionIngredients => Set<RecipeVersionIngredient>();
+    public DbSet<DayPlan> DayPlans => Set<DayPlan>();
+    public DbSet<DayPlanEntry> DayPlanEntries => Set<DayPlanEntry>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

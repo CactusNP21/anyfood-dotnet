@@ -9,9 +9,6 @@ public class CreateProductRequest
     [MaxLength(100, ErrorMessage = "Назва не може перевищувати 100 символів.")]
     public string Name { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "Калорії обов'язкові.")]
-    public decimal Calories { get; set; }
-    
     [Required]
     public decimal Protein { get; set; }
     [Required]
@@ -22,8 +19,8 @@ public class CreateProductRequest
     public decimal Price { get; set; }
     [Required]
     public int CategoryId { get; set; }
-    [Required]
-    public string GlycemicIndex { get; set; }
+    
+    // public string GlycemicIndex { get; set; }
     [Required]
     public string ImageUrl { get; set; }
 

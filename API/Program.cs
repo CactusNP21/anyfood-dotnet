@@ -5,6 +5,8 @@ using Application.Auth.Interfaces;
 using Application.Auth.Services;
 using Application.Categories.Interfaces;
 using Application.Categories.Services;
+using Application.DayPlans.Interfaces;
+using Application.DayPlans.Services;
 using Application.Mapping;
 using Application.Products.EventHandlers;
 using Application.Products.Interfaces;
@@ -16,6 +18,7 @@ using Application.Users.Interfaces;
 using Application.Users.Services;
 using Domain.Entities;
 using Infrastructure.Categories;
+using Infrastructure.DayPlans;
 using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Interceptors;
@@ -29,6 +32,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
 
 // Додати одразу після var builder = WebApplication.CreateBuilder(args);
 MappingConfig.Configure();
@@ -116,6 +120,10 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 // ── Recipe ─────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IRecipeRepository, RecipesRepository>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
+
+//--DayPlan-------------------------------
+builder.Services.AddScoped<IDayPlanRepository, DayPlanRepository>();
+builder.Services.AddScoped<IDayPlanService, DayPlanService>();
 
 // ── Build ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();
