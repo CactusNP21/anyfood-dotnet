@@ -10,12 +10,17 @@ public class DayPlanConfiguration : IEntityTypeConfiguration<DayPlan>
     {
         builder.HasKey(d => d.Id);
 
+        builder.Property(d => d.Name)
+            .IsRequired()
+            .HasMaxLength(200);
+
         builder.HasOne(d => d.User)
             .WithMany()
             .HasForeignKey(d => d.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasIndex(d => new { d.UserId }).IsUnique();
+        // Індекс для швидкого пошуку планів юзера
+        builder.HasIndex(d => d.UserId);
     }
 }
 
@@ -25,27 +30,34 @@ public class DayPlanEntryConfiguration : IEntityTypeConfiguration<DayPlanEntry>
     {
         builder.HasKey(e => e.Id);
 
+        builder.Property(e => e.Weight).IsRequired();
+
         builder.HasOne(e => e.DayPlan)
             .WithMany(d => d.Entries)
             .HasForeignKey(e => e.DayPlanId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(e => e.Recipe)
+        // Версія рецепту — Restrict, щоб не можна було видалити версію,
+        // яка використовується в плані
+        builder.HasOne(e => e.RecipeVersion)
             .WithMany()
-            .HasForeignKey(e => e.RecipeId)
+            .HasForeignKey(e => e.RecipeVersionId)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false);
 
-        builder.HasOne(e => e.Product)
+        // Версія продукту — теж Restrict
+        builder.HasOne(e => e.ProductVersion)
             .WithMany()
-            .HasForeignKey(e => e.ProductId)
+            .HasForeignKey(e => e.ProductVersionId)
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false);
 
-        // Гарантуємо що заповнений рівно один FK
+        // DB-рівень: рівно один із двох FK заповнений
         builder.ToTable(t => t.HasCheckConstraint(
-            "CK_DayPlanEntry_RecipeOrProduct",
-            "(\"RecipeId\" IS NOT NULL) != (\"ProductId\" IS NOT NULL)"
+            "CK_DayPlanEntry_RecipeVersionOrProductVersion",
+            "(\"RecipeVersionId\" IS NOT NULL) != (\"ProductVersionId\" IS NOT NULL)"
         ));
+
+        builder.HasIndex(e => e.DayPlanId);
     }
 }

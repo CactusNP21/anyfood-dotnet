@@ -1,6 +1,3 @@
-// Application/DayPlans/Services/DayPlanService.cs
-
-using System.Security.Claims;
 using Application.DayPlans.DTOs;
 using Application.DayPlans.Interfaces;
 using Domain.Entities;
@@ -12,17 +9,16 @@ public class DayPlanService(IDayPlanRepository repository) : IDayPlanService
 {
     public async Task<DayPlanDto> CreateAsync(CreateDayPlanRequest request, string userId)
     {
-       
         ValidateEntries(request.Entries);
-        
+
         var dayPlan = new DayPlan
         {
             Name = request.Name,
             UserId = userId,
             Entries = request.Entries.Select(e => new DayPlanEntry
             {
-                RecipeId = e.RecipeId,
-                ProductId = e.ProductId,
+                RecipeVersionId = e.RecipeVersionId,
+                ProductVersionId = e.ProductVersionId,
                 Weight = e.Weight,
             }).ToList(),
         };
@@ -51,6 +47,8 @@ public class DayPlanService(IDayPlanRepository repository) : IDayPlanService
         await repository.DeleteAsync(dayPlan);
     }
 
+    // ── Private ──────────────────────────────────────────────────────────────
+
     private static void ValidateEntries(ICollection<DayPlanEntryDto> entries)
     {
         if (entries.Count == 0)
@@ -58,13 +56,13 @@ public class DayPlanService(IDayPlanRepository repository) : IDayPlanService
 
         foreach (var entry in entries)
         {
-            if (entry.RecipeId is null && entry.ProductId is null)
+            if (entry.RecipeVersionId is null && entry.ProductVersionId is null)
                 throw new InvalidOperationException(
-                    "Кожен запис повинен містити рецепт або продукт.");
+                    "Кожен запис повинен містити версію рецепту або версію продукту.");
 
-            if (entry.RecipeId is not null && entry.ProductId is not null)
+            if (entry.RecipeVersionId is not null && entry.ProductVersionId is not null)
                 throw new InvalidOperationException(
-                    "Запис не може одночасно містити рецепт і продукт.");
+                    "Запис не може одночасно містити версію рецепту і версію продукту.");
 
             if (entry.Weight <= 0)
                 throw new InvalidOperationException("Вага повинна бути більше 0.");
