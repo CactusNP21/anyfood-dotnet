@@ -8,7 +8,7 @@ public class CreateDayPlanRequest
 
 public class DayPlanEntryDto
 {
-    public int? RecipeVersionId { get; set; }
-    public int? ProductVersionId { get; set; }
+    public int? ProductId { get; set; }      // замість ProductVersionId
+    public int? RecipeId { get; set; } 
     public float Weight { get; set; }
 }

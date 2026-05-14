@@ -10,11 +10,14 @@ public interface IRecipeRepository : IBaseRepository<Recipe>
     Task<Recipe> CreateRecipeVersionAsync(Recipe recipe, RecipeVersion recipeVersion);
 
     // ── Версіонування ────────────────────────────────────────────────────────
-    // Повертає останній номер версії для рецепту (0 якщо версій ще немає)
+    // Повертає останній номер версії для рецепта (0, якщо версій ще немає)
     Task<int> GetLatestVersionNumberAsync(int recipeId);
-    // Повертає всі версії рецепту (без інгредієнтів — для списку)
+    // Повертає всі версії рецепта (без інгредієнтів — для списку)
     Task<IReadOnlyList<RecipeVersion>> GetVersionsAsync(int recipeId);
     // Повертає конкретну версію з інгредієнтами та даними продуктів
-    Task<RecipeVersion?> GetVersionByIdAsync(int recipeId, int versionId);
+    Task<RecipeVersion?> GetVersionByIdAsync(int versionId);
+    
+    // Application/Recipes/Interfaces/IRecipeRepository.cs
+    Task<RecipeVersion?> GetLatestVersionAsync(int recipeId);
 
 };

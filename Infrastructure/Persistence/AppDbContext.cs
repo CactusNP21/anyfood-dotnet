@@ -13,11 +13,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ProductPriceHistory> ProductPriceHistories => Set<ProductPriceHistory>();
     public DbSet<RecipeProduct> RecipeProducts => Set<RecipeProduct>();
     public DbSet<SavedRecipe> SavedRecipes => Set<SavedRecipe>();
+    public DbSet<SavedProduct> SavedProducts => Set<SavedProduct>();
     public DbSet<ProductVersion> ProductVersions => Set<ProductVersion>();
     public DbSet<RecipeVersion> RecipeVersions => Set<RecipeVersion>();
     public DbSet<RecipeVersionIngredient> RecipeVersionIngredients => Set<RecipeVersionIngredient>();
     public DbSet<DayPlan> DayPlans => Set<DayPlan>();
     public DbSet<DayPlanEntry> DayPlanEntries => Set<DayPlanEntry>();
+    public DbSet<ShoppingList> ShoppingLists => Set<ShoppingList>();
+    public DbSet<ShoppingListItem> ShoppingListItems => Set<ShoppingListItem>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -26,8 +29,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         builder.Entity<RecipeProduct>()
             .HasKey(rp => new { rp.RecipeId, rp.ProductId });
 
-        builder.Entity<SavedRecipe>()
-            .HasKey(sr => new { sr.RecipeId, sr.UserId });
+        builder.Entity<SavedRecipe>().HasKey(sr => new { sr.UserId, sr.RecipeVersionId });
+        builder.Entity<SavedProduct>().HasKey(sp => new { sp.UserId, sp.ProductVersionId });
         
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }

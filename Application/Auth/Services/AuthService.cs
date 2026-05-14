@@ -75,7 +75,8 @@ public class AuthService : IAuthService
 
     private async Task<LoginResponse> GenerateLoginResponseAsync(User user)
     {
-        var accessToken = await GenerateAccessToken(user);
+        var roles = await userRepository.GetRolesAsync(user);
+        var accessToken = await GenerateAccessToken(user, roles);
         var refreshToken = GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
@@ -96,16 +97,16 @@ public class AuthService : IAuthService
                 Username = user.UserName!,
                 Email = user.Email!,
                 AvatarUrl = user.AvatarUrl,
+                Roles = roles
             }
         };
     }
 
-    private async Task<string> GenerateAccessToken(User user)
+    private async Task<string> GenerateAccessToken(User user, IList<string> roles)
     {
         var jwtSettings = configuration.GetSection("Jwt");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]!));
-        var roles = await userRepository.GetRolesAsync(user);
-        
+
         var claims = new Dictionary<string, object>
         {
             [JwtRegisteredClaimNames.Sub] = user.Id,

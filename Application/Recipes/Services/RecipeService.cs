@@ -105,8 +105,8 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
 
     public async Task SaveRecipe(int recipeId, string userId)
     {
-        _ = await repository.GetByIdAsync(recipeId) ?? throw new KeyNotFoundException();
-        await repository.SaveRecipeAsync(recipeId, userId);
+        var version = await repository.GetLatestVersionAsync(recipeId) ?? throw new KeyNotFoundException();
+        await repository.SaveRecipeAsync(version.Id, userId);
     }
 
 

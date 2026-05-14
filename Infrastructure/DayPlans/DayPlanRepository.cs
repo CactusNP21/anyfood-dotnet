@@ -36,4 +36,14 @@ public class DayPlanRepository(AppDbContext ctx) : IDayPlanRepository
         ctx.DayPlans.Remove(dayPlan);
         await ctx.SaveChangesAsync();
     }
+    
+    public async Task<DayPlan?> GetByIdWithDetailsAsync(int id)
+        => await ctx.DayPlans
+            .Include(d => d.Entries)
+            .ThenInclude(e => e.ProductVersion)
+            .Include(d => d.Entries)
+            .ThenInclude(e => e.RecipeVersion)
+            .ThenInclude(rv => rv!.Ingredients)
+            .ThenInclude(i => i.ProductVersion)
+            .FirstOrDefaultAsync(d => d.Id == id);
 }

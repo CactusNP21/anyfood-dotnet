@@ -14,9 +14,12 @@ using Application.Products.Services;
 using Application.RecipeCategories.Interfaces;
 using Application.Recipes.Interfaces;
 using Application.Recipes.Services;
+using Application.ShoppingList.Interfaces;
+using Application.ShoppingList.Service;
 using Application.Users.Interfaces;
 using Application.Users.Services;
 using Domain.Entities;
+using Infrastructure;
 using Infrastructure.Categories;
 using Infrastructure.DayPlans;
 using Infrastructure.Identity;
@@ -124,6 +127,13 @@ builder.Services.AddScoped<IRecipeService, RecipeService>();
 //--DayPlan-------------------------------
 builder.Services.AddScoped<IDayPlanRepository, DayPlanRepository>();
 builder.Services.AddScoped<IDayPlanService, DayPlanService>();
+
+// ── ShoppingList ─────────────────────────────────────────────────────────────────
+builder.Services.AddScoped<IShoppingSourceResolver, RecipeSourceResolver>();
+builder.Services.AddScoped<IShoppingSourceResolver, ProductSourceResolver>();
+builder.Services.AddScoped<IShoppingSourceResolver, DayPlanSourceResolver>();
+builder.Services.AddScoped<IShoppingListService, ShoppingListService>();
+builder.Services.AddScoped<IShoppingListRepository, ShoppingListRepository>();
 
 // ── Build ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();

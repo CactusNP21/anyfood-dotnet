@@ -1,26 +1,55 @@
 using Application.DayPlans.DTOs;
 using Application.DayPlans.Interfaces;
+using Application.Products.Interfaces;
+using Application.Recipes.Interfaces;
 using Domain.Entities;
 using Mapster;
 
 namespace Application.DayPlans.Services;
 
-public class DayPlanService(IDayPlanRepository repository) : IDayPlanService
+public class DayPlanService(
+    IDayPlanRepository repository,
+    IProductRepository productRepository,
+    IRecipeRepository recipeRepository) : IDayPlanService
 {
+    // Application/DayPlans/Services/DayPlanService.cs
     public async Task<DayPlanDto> CreateAsync(CreateDayPlanRequest request, string userId)
     {
         ValidateEntries(request.Entries);
+
+        var entries = new List<DayPlanEntry>();
+
+        foreach (var e in request.Entries)
+        {
+            if (e.ProductId is not null)
+            {
+                var version = await productRepository.GetLatestVersionAsync(e.ProductId.Value)
+                              ?? throw new KeyNotFoundException($"Продукт з id={e.ProductId} не має версій.");
+
+                entries.Add(new DayPlanEntry
+                {
+                    ProductVersionId = version.Id,
+                    Weight = e.Weight,
+                });
+            }
+            else if (e.RecipeId is not null)
+            {
+                var version = await recipeRepository.GetLatestVersionAsync(e.RecipeId.Value)  // треба додати цей метод
+                              ?? throw new KeyNotFoundException($"Рецепт з id={e.RecipeId} не має версій.");
+
+                entries.Add(new DayPlanEntry
+                {
+                    RecipeVersionId = version.Id,
+                    Weight = e.Weight,
+                });
+            }
+        }
 
         var dayPlan = new DayPlan
         {
             Name = request.Name,
             UserId = userId,
-            Entries = request.Entries.Select(e => new DayPlanEntry
-            {
-                RecipeVersionId = e.RecipeVersionId,
-                ProductVersionId = e.ProductVersionId,
-                Weight = e.Weight,
-            }).ToList(),
+            Entries = entries,
         };
 
         var created = await repository.CreateAsync(dayPlan);
@@ -56,11 +85,11 @@ public class DayPlanService(IDayPlanRepository repository) : IDayPlanService
 
         foreach (var entry in entries)
         {
-            if (entry.RecipeVersionId is null && entry.ProductVersionId is null)
+            if (entry.RecipeId is null && entry.ProductId is null)
                 throw new InvalidOperationException(
                     "Кожен запис повинен містити версію рецепту або версію продукту.");
 
-            if (entry.RecipeVersionId is not null && entry.ProductVersionId is not null)
+            if (entry.RecipeId is not null && entry.ProductId is not null)
                 throw new InvalidOperationException(
                     "Запис не може одночасно містити версію рецепту і версію продукту.");
 

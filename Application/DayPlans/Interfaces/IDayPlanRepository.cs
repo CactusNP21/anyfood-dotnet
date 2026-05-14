@@ -9,4 +9,5 @@ public interface IDayPlanRepository
     Task<IReadOnlyList<DayPlan>> GetByUserAsync(string userId);
     Task<DayPlan> CreateAsync(DayPlan dayPlan);
     Task DeleteAsync(DayPlan dayPlan);
+    Task<DayPlan?> GetByIdWithDetailsAsync(int id);
 }

@@ -37,12 +37,12 @@ public class RecipesRepository(AppDbContext ctx): IRecipeRepository
         await ctx.SaveChangesAsync();
     }
 
-    public async Task SaveRecipeAsync(int recipeId, string userId)
+    public async Task SaveRecipeAsync(int recipeVersionId, string userId)
     { 
         ctx.SavedRecipes.Add(new SavedRecipe
         {
             UserId = userId,
-            RecipeId = recipeId,
+            RecipeVersionId = recipeVersionId,
         });
         await ctx.SaveChangesAsync();
     }
@@ -84,9 +84,16 @@ public class RecipesRepository(AppDbContext ctx): IRecipeRepository
             // Без інгредієнтів — для списку достатньо базових полів
             .ToListAsync();
 
-    public async Task<RecipeVersion?> GetVersionByIdAsync(int recipeId, int versionId)
+    public async Task<RecipeVersion?> GetVersionByIdAsync(int recipeVersionId)
         => await ctx.RecipeVersions
             .Include(rv => rv.Ingredients)
             .ThenInclude(i => i.ProductVersion)
-            .FirstOrDefaultAsync(rv => rv.RecipeId == recipeId && rv.Id == versionId);
+            .FirstOrDefaultAsync(rv => rv.Id == recipeVersionId);
+    
+    // Infrastructure/Recipes/RecipesRepository.cs
+    public async Task<RecipeVersion?> GetLatestVersionAsync(int recipeId)
+        => await ctx.RecipeVersions
+            .Where(rv => rv.RecipeId == recipeId)
+            .OrderByDescending(rv => rv.VersionNumber)
+            .FirstOrDefaultAsync();
 }
