@@ -1,5 +1,6 @@
 using Application.ShoppingList.DTO;
 using Application.ShoppingList.Interfaces;
+using Mapster;
 
 namespace Application.ShoppingList.Service;
 
@@ -38,7 +39,8 @@ public class ShoppingListService(
 
     public async Task<IReadOnlyList<ShoppingListDto>> GetByUserAsync(string userId)
     {
-        throw new NotImplementedException();
+        var lists = await repository.GetByUserAsync(userId);
+        return lists.Adapt<IReadOnlyList<ShoppingListDto>>();
     }
 
     public async Task<ShoppingListDto> GetByIdAsync(int id)

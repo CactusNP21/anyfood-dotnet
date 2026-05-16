@@ -10,6 +10,9 @@ public class Recipe
     public required ICollection<RecipeCategory> RecipeCategories { get; set; }
     public required int Portions { get; set; }
     
+    public int? LatestVersionId { get; set; } 
+    public RecipeVersion? LatestVersion { get; set; } 
+    
     public ICollection<RecipeVersion> Versions { get; set; } = [];
     
     public string Description { get; set; } = String.Empty;

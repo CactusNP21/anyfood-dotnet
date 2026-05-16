@@ -95,6 +95,8 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
         
         var created = await repository.CreateRecipeVersionAsync(recipe, recipeVersion);
         
+        created.LatestVersionId = recipeVersion.Id;
+
         return created.Adapt<RecipeDto>();
     }
 

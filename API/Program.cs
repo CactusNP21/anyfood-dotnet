@@ -143,6 +143,10 @@ using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     await RoleSeeder.SeedAsync(roleManager);
+    
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await RecipeLatestVersionSeeder.SeedAsync(db);  // <-- add this
+
 }
 
 // if (app.Environment.IsDevelopment())

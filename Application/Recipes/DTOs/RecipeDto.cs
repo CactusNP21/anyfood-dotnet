@@ -14,6 +14,9 @@ public class RecipeDto
     public required ICollection<RecipeCategoryDto> RecipeCategories { get; set; }
     public required int Portions { get; set; }
 
+    public required int LatestVersionId { get; set; }
+
+    
     public string Description { get; set; } = String.Empty;
     public int Duration { get; set; }
     public float Calories { get; set; }
