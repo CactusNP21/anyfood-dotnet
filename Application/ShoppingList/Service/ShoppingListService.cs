@@ -1,5 +1,6 @@
 using Application.ShoppingList.DTO;
 using Application.ShoppingList.Interfaces;
+using Domain.Entities;
 using Mapster;
 
 namespace Application.ShoppingList.Service;
@@ -18,15 +19,15 @@ public class ShoppingListService(
 
         // Агрегуємо по ProductVersionId
         var aggregated = all
-            .GroupBy(i => i.ProductVersionId)
+            .GroupBy(i => i.ProductId)
             .Select(g => new ShoppingListItem
             {
-                ProductVersionId = g.Key,
+                ProductId = g.Key,
                 TotalWeight = g.Sum(i => i.Weight),
             })
             .ToList();
 
-        var shoppingList = new global::ShoppingList
+        var shoppingList = new global::Domain.Entities.ShoppingList
         {
             Name = request.Name,
             UserId = userId,
@@ -40,7 +41,7 @@ public class ShoppingListService(
     public async Task<IReadOnlyList<ShoppingListDto>> GetByUserAsync(string userId)
     {
         var lists = await repository.GetByUserAsync(userId);
-        return lists.Adapt<IReadOnlyList<ShoppingListDto>>();
+        return lists.Select(ToDto).ToList();  // was: lists.Adapt<IReadOnlyList<ShoppingListDto>>()
     }
 
     public async Task<ShoppingListDto> GetByIdAsync(int id)
@@ -58,7 +59,7 @@ public class ShoppingListService(
         throw new NotImplementedException();
     }
     
-    private static ShoppingListDto ToDto(global::ShoppingList list) => new()
+    private static ShoppingListDto ToDto(Domain.Entities.ShoppingList list) => new()
     {
         Id = list.Id,
         Name = list.Name,
@@ -66,14 +67,14 @@ public class ShoppingListService(
         Items = list.Items.Select(i => new ShoppingListItemDto
         {
             Id = i.Id,
-            ProductName = i.ProductVersion.Name,
-            ImageUrl = i.ProductVersion.ImageUrl,
+            ProductName = i.Product.Name,
+            ImageUrl = i.Product.ImageUrl,
             TotalWeight = i.TotalWeight,
-            PricePerKg = i.ProductVersion.Price,
-            TotalPrice = i.ProductVersion.Price * (decimal)(i.TotalWeight / 1000f),
+            PricePerKg = i.Product.Price,
+            TotalPrice = i.Product.Price * (decimal)(i.TotalWeight / 1000f),
             IsPurchased = i.IsPurchased,
         }).ToList(),
         TotalPrice = list.Items.Sum(i =>
-            i.ProductVersion.Price * (decimal)(i.TotalWeight / 1000f)),
+            i.Product.Price * (decimal)(i.TotalWeight / 1000f)),
     };
 }

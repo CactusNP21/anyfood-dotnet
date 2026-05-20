@@ -1,4 +1,5 @@
 using Application.ShoppingList.Interfaces;
+using Domain.Entities;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,13 +18,13 @@ public class ShoppingListRepository(AppDbContext ctx) : IShoppingListRepository
     public async Task<ShoppingList?> GetByIdAsync(int id)
         => await ctx.ShoppingLists
             .Include(sl => sl.Items)
-            .ThenInclude(i => i.ProductVersion)
+            .ThenInclude(i => i.Product)
             .FirstOrDefaultAsync(sl => sl.Id == id);
 
     public async Task<IReadOnlyList<ShoppingList>> GetByUserAsync(string userId)
         => await ctx.ShoppingLists
             .Include(sl => sl.Items)
-            .ThenInclude(i => i.ProductVersion)
+            .ThenInclude(i => i.Product)
             .Where(sl => sl.UserId == userId)
             .OrderByDescending(sl => sl.CreatedAt)
             .ToListAsync();

@@ -17,11 +17,11 @@ public class DayPlanSourceResolver(IDayPlanRepository dayPlanRepository) : IShop
 
             foreach (var entry in plan.Entries)
             {
-                if (entry.ProductVersion is not null)
+                if (entry.ProductId is not null)
                 {
                     result.Add(new ShoppingIngredient(
-                        entry.ProductVersionId!.Value,
-                        entry.ProductVersion,
+                        entry.ProductId.Value, 
+                        entry.Product,
                         entry.Weight));
                 }
 
@@ -32,8 +32,8 @@ public class DayPlanSourceResolver(IDayPlanRepository dayPlanRepository) : IShop
                     {
                         var ratio = total > 0 ? ingredient.Weight / total : 0;
                         result.Add(new ShoppingIngredient(
-                            ingredient.ProductVersionId,
-                            ingredient.ProductVersion,
+                            ingredient.ProductId,
+                            ingredient.Product,
                             entry.Weight * ratio));
                     }
                 }

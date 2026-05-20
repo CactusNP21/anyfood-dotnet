@@ -11,8 +11,8 @@ public class DayPlanEntry
     public int? RecipeVersionId { get; set; }
     public RecipeVersion? RecipeVersion { get; set; }
 
-    public int? ProductVersionId { get; set; }
-    public ProductVersion? ProductVersion { get; set; }
+    public int? ProductId { get; set; }
+    public Product? Product { get; set; }
 
     // Вага в грамах
     public float Weight { get; set; }

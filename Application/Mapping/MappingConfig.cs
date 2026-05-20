@@ -9,11 +9,6 @@ public static class MappingConfig
 {
     public static void Configure()
     {
-        TypeAdapterConfig<Product, ProductVersion>
-            .NewConfig()
-            .Map(dest => dest.Id, src => 0)
-            .Map(dest => dest.ProductId, src => src.Id)
-            .Map(dest => dest.VersionNumber, src => 0);
 
         TypeAdapterConfig<Recipe, RecipeVersion>
             .NewConfig()

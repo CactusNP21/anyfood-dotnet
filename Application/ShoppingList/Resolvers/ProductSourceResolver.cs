@@ -3,6 +3,8 @@
 using Application.Products.Interfaces;
 using Application.ShoppingList.DTO;
 
+namespace Application.ShoppingList.Resolvers;
+
 public class ProductSourceResolver(IProductRepository productRepository) : IShoppingSourceResolver
 {
     public async Task<IEnumerable<ShoppingIngredient>> ResolveAsync(
@@ -12,10 +14,10 @@ public class ProductSourceResolver(IProductRepository productRepository) : IShop
 
         foreach (var source in request.Products)
         {
-            var version = await productRepository.GetProductVersionByIdAsync(source.ProductVersionId)
-                          ?? throw new KeyNotFoundException($"Продукт id={source.ProductVersionId} не має версій.");
+            var product = await productRepository.GetByIdAsync(source.ProductId)
+                          ?? throw new KeyNotFoundException($"Продукт id={source.ProductId} не існує");
 
-            result.Add(new ShoppingIngredient(version.Id, version, source.Weight));
+            result.Add(new ShoppingIngredient(product.Id, product, source.Weight));
         }
 
         return result;

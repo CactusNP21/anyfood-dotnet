@@ -15,6 +15,7 @@ using Application.RecipeCategories.Interfaces;
 using Application.Recipes.Interfaces;
 using Application.Recipes.Services;
 using Application.ShoppingList.Interfaces;
+using Application.ShoppingList.Resolvers;
 using Application.ShoppingList.Service;
 using Application.Users.Interfaces;
 using Application.Users.Services;

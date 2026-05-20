@@ -20,6 +20,6 @@ public class RecipeSource
 
 public class ProductSource
 {
-    public int ProductVersionId { get; set; }
+    public int ProductId { get; set; }
     public float Weight { get; set; }
 }

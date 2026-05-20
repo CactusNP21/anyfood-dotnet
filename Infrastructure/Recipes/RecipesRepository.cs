@@ -1,7 +1,6 @@
 using Application.Recipes.Interfaces;
 using Domain.Entities;
 using Infrastructure.Persistence;
-using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Recipes;
@@ -87,7 +86,7 @@ public class RecipesRepository(AppDbContext ctx): IRecipeRepository
     public async Task<RecipeVersion?> GetVersionByIdAsync(int recipeVersionId)
         => await ctx.RecipeVersions
             .Include(rv => rv.Ingredients)
-            .ThenInclude(i => i.ProductVersion)
+            .ThenInclude(i => i.Product)
             .FirstOrDefaultAsync(rv => rv.Id == recipeVersionId);
     
     // Infrastructure/Recipes/RecipesRepository.cs

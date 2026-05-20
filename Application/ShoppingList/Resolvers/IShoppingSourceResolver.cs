@@ -9,4 +9,4 @@ public interface IShoppingSourceResolver
         GenerateShoppingListRequest request, CancellationToken ct = default);
 }
 
-public record ShoppingIngredient(int ProductVersionId, ProductVersion Version, float Weight);
+public record ShoppingIngredient(int ProductId, Product Product, float Weight);

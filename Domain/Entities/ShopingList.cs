@@ -1,6 +1,6 @@
 // Domain/Entities/ShoppingList.cs
 
-using Domain.Entities;
+namespace Domain.Entities;
 
 public class ShoppingList
 {
@@ -21,9 +21,8 @@ public class ShoppingListItem
     public int ShoppingListId { get; set; }
     public ShoppingList ShoppingList { get; set; } = null!;
 
-    // Посилання на конкретну версію продукту (snapshot ціни/назви)
-    public int ProductVersionId { get; set; }
-    public ProductVersion ProductVersion { get; set; } = null!;
+    public required int ProductId { get; set; }
+    public Product Product { get; set; } = null!;
 
     public float TotalWeight { get; set; } // грами
     public bool IsPurchased { get; set; }

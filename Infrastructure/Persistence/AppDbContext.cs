@@ -14,7 +14,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<RecipeProduct> RecipeProducts => Set<RecipeProduct>();
     public DbSet<SavedRecipe> SavedRecipes => Set<SavedRecipe>();
     public DbSet<SavedProduct> SavedProducts => Set<SavedProduct>();
-    public DbSet<ProductVersion> ProductVersions => Set<ProductVersion>();
     public DbSet<RecipeVersion> RecipeVersions => Set<RecipeVersion>();
     public DbSet<RecipeVersionIngredient> RecipeVersionIngredients => Set<RecipeVersionIngredient>();
     public DbSet<DayPlan> DayPlans => Set<DayPlan>();
@@ -30,7 +29,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             .HasKey(rp => new { rp.RecipeId, rp.ProductId });
 
         builder.Entity<SavedRecipe>().HasKey(sr => new { sr.UserId, sr.RecipeVersionId });
-        builder.Entity<SavedProduct>().HasKey(sp => new { sp.UserId, sp.ProductVersionId });
+        builder.Entity<SavedProduct>().HasKey(sp => new { sp.UserId, sp.ProductId });
         
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }

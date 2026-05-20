@@ -23,8 +23,8 @@ public class RecipeSourceResolver(IRecipeRepository recipeRepository) : IShoppin
                 var weight = ratio * source.Weight;
 
                 result.Add(new ShoppingIngredient(
-                    ingredient.ProductVersionId,
-                    ingredient.ProductVersion,
+                    ingredient.ProductId,
+                    ingredient.Product,
                     weight));
             }
         }

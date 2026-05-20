@@ -23,12 +23,9 @@ public class DayPlanService(
         {
             if (e.ProductId is not null)
             {
-                var version = await productRepository.GetLatestVersionAsync(e.ProductId.Value)
-                              ?? throw new KeyNotFoundException($"Продукт з id={e.ProductId} не має версій.");
-
                 entries.Add(new DayPlanEntry
                 {
-                    ProductVersionId = version.Id,
+                    ProductId = e.ProductId,
                     Weight = e.Weight,
                 });
             }

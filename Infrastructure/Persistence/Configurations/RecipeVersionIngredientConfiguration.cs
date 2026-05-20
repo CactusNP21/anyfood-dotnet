@@ -18,14 +18,6 @@ public class RecipeVersionIngredientConfiguration : IEntityTypeConfiguration<Rec
             .HasForeignKey(rvi => rvi.RecipeVersionId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Якщо версія продукту видаляється — забороняємо (Restrict)
-        // бо це зламає історичні дані рецепту
-        builder.HasOne(rvi => rvi.ProductVersion)
-            .WithMany()
-            .HasForeignKey(rvi => rvi.ProductVersionId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasIndex(rvi => rvi.RecipeVersionId);
-        builder.HasIndex(rvi => rvi.ProductVersionId);
     }
 }

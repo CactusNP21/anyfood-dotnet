@@ -60,16 +60,6 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
     {
         var productIds = request.RecipeProducts.Select(i => i.ProductId).ToList();
         var products = await productRepository.GetByBatchIdAsync(productIds);
-
-        // Знаходимо актуальні версії всіх продуктів одразу
-        var productVersions = new Dictionary<int, ProductVersion>();
-        foreach (var productId in productIds)
-        {
-            var version = await productRepository.GetLatestVersionAsync(productId)
-                          ?? throw new InvalidOperationException(
-                              $"Продукт з id={productId} не має жодної версії.");
-            productVersions.Add(productId, version);
-        }
         
         var nutrition = CalculateNutritionPer100G(request, products);
 
@@ -82,7 +72,7 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
             VersionNumber = 1,
             Ingredients = request.RecipeProducts.Select(rp => new RecipeVersionIngredient
             {
-                ProductVersionId = productVersions[rp.ProductId].Id,
+                ProductId = rp.ProductId,
                 Weight = rp.Weight,
             }).ToList(),
         };
