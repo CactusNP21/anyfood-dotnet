@@ -15,7 +15,14 @@ public class ProductController(IProductService productService) : ControllerBase
         var categories = await productService.GetAllAsync();
         return Ok(categories);
     }
-
+    
+    [HttpGet("filter")]
+    public async Task<ActionResult<IReadOnlyList<ProductSummaryDto>>> Filter([FromQuery] ProductFilterRequest filter)
+    {
+        var products = await productService.FilterAsync(filter);
+        return Ok(products);
+    }
+    
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ProductDto>> GetById(int id)
     {

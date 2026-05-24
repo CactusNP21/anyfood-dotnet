@@ -12,6 +12,12 @@ public class ProductService(IProductRepository productRepository) : IProductServ
         var products = await productRepository.GetAllAsync();
         return products.Select(product => product.Adapt<ProductSummaryDto>()).ToList();
     }
+    
+    public async Task<IReadOnlyList<ProductSummaryDto>> FilterAsync(ProductFilterRequest filter)
+    {
+        var products = await productRepository.FilterAsync(filter);
+        return products.Select(p => p.Adapt<ProductSummaryDto>()).ToList();
+    }
 
     public async Task<ProductDto> GetByIdAsync(int id)
     {

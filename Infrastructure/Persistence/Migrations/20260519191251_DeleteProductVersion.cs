@@ -28,6 +28,34 @@ namespace Infrastructure.Persistence.Migrations
                 name: "FK_ShoppingListItems_ProductVersions_ProductVersionId",
                 table: "ShoppingListItems");
 
+            migrationBuilder.Sql("""
+                                     UPDATE "RecipeVersionIngredients" rvi
+                                     SET "ProductVersionId" = pv."ProductId"
+                                     FROM "ProductVersions" pv
+                                     WHERE rvi."ProductVersionId" = pv."Id";
+                                 """);
+            
+            migrationBuilder.Sql("""
+                                     UPDATE "DayPlanEntries" dpe
+                                     SET "ProductVersionId" = pv."ProductId"
+                                     FROM "ProductVersions" pv
+                                     WHERE dpe."ProductVersionId" = pv."Id";
+                                 """);
+
+            migrationBuilder.Sql("""
+                                     UPDATE "SavedProducts" sp
+                                     SET "ProductVersionId" = pv."ProductId"
+                                     FROM "ProductVersions" pv
+                                     WHERE sp."ProductVersionId" = pv."Id";
+                                 """);
+
+            migrationBuilder.Sql("""
+                                     UPDATE "ShoppingListItems" sli
+                                     SET "ProductVersionId" = pv."ProductId"
+                                     FROM "ProductVersions" pv
+                                     WHERE sli."ProductVersionId" = pv."Id";
+                                 """);
+            
             migrationBuilder.DropTable(
                 name: "ProductVersions");
 

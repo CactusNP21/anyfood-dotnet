@@ -49,7 +49,7 @@ public class DayPlanEntryConfiguration : IEntityTypeConfiguration<DayPlanEntry>
         // DB-рівень: рівно один із двох FK заповнений
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_DayPlanEntry_RecipeVersionOrProductVersion",
-            "(\"RecipeVersionId\" IS NOT NULL) != (\"ProductVersionId\" IS NOT NULL)"
+            "(\"RecipeVersionId\" IS NOT NULL) != (\"ProductId\" IS NOT NULL)"
         ));
 
         builder.HasIndex(e => e.DayPlanId);
