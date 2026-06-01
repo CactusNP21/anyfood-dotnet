@@ -8,7 +8,6 @@ using Application.Categories.Services;
 using Application.DayPlans.Interfaces;
 using Application.DayPlans.Services;
 using Application.Mapping;
-using Application.Products.EventHandlers;
 using Application.Products.Interfaces;
 using Application.Products.Services;
 using Application.RecipeCategories.Interfaces;
@@ -36,7 +35,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://0.0.0.0:5000");
 
 // Додати одразу після var builder = WebApplication.CreateBuilder(args);
 MappingConfig.Configure();
