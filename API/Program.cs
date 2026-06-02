@@ -137,15 +137,19 @@ builder.Services.AddScoped<IShoppingListRepository, ShoppingListRepository>();
 // ── Build ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
-// ── Seed ───────────────────────────────────────────────────────────────────────
+// ── Migrate & Seed ─────────────────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    await RoleSeeder.SeedAsync(roleManager);
-    
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await RecipeLatestVersionSeeder.SeedAsync(db);  // <-- add this
+    await db.Database.MigrateAsync();
 
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    await RoleSeeder.SeedAsync(roleManager);
+    await AdminSeeder.SeedAsync(userManager, roleManager);
+
+    await DataSeeder.SeedAsync(db);
+    await RecipeLatestVersionSeeder.SeedAsync(db);
 }
 
 // if (app.Environment.IsDevelopment())
