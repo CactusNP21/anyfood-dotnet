@@ -18,7 +18,7 @@ public class CreateProductRequest
     [Required]
     public decimal Price { get; set; }
     [Required]
-    public int CategoryId { get; set; }
+    public int[] CategoryId { get; set; }
     
     // public string GlycemicIndex { get; set; }
     [Required]

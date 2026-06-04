@@ -29,7 +29,7 @@ public class CategoryRepository : ICategoryRepository
 
     public async Task<bool> HasProductsAsync(int id)
         => await context.Products
-            .AnyAsync(p => p.CategoryId == id);
+            .AnyAsync(p => p.CategoryId.Any(cat => cat == id));
 
     public async Task<Category> CreateAsync(Category category)
     {

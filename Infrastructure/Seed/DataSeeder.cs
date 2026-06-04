@@ -63,91 +63,91 @@ public static class DataSeeder
             {
                 Name = "Куряча грудка", IsSystem = true,
                 Calories = 165, Protein = 31, Fat = 3.6m, Carbs = 0, GlycemicIndex = 0,
-                Price = 5.99m, CategoryId = categories["М'ясо та птиця"]
+                Price = 5.99m, CategoryId = [categories["М'ясо та птиця"]]
             },
             new()
             {
                 Name = "Яйце куряче", IsSystem = true,
                 Calories = 155, Protein = 13, Fat = 11, Carbs = 1.1m, GlycemicIndex = 0,
-                Price = 0.25m, CategoryId = categories["Молочні продукти та яйця"]
+                Price = 0.25m, CategoryId = [categories["Молочні продукти та яйця"]]
             },
             new()
             {
                 Name = "Молоко незбиране", IsSystem = true,
                 Calories = 61, Protein = 3.2m, Fat = 3.3m, Carbs = 4.8m, GlycemicIndex = 40,
-                Price = 0.89m, CategoryId = categories["Молочні продукти та яйця"]
+                Price = 0.89m, CategoryId = [categories["Молочні продукти та яйця"]]
             },
             new()
             {
                 Name = "Рис білий", IsSystem = true,
                 Calories = 130, Protein = 2.7m, Fat = 0.3m, Carbs = 28.2m, GlycemicIndex = 72,
-                Price = 0.60m, CategoryId = categories["Зернові та крупи"]
+                Price = 0.60m, CategoryId = [categories["Зернові та крупи"]]
             },
             new()
             {
                 Name = "Вівсянка", IsSystem = true,
                 Calories = 389, Protein = 17, Fat = 7, Carbs = 66, GlycemicIndex = 55,
-                Price = 0.40m, CategoryId = categories["Зернові та крупи"]
+                Price = 0.40m, CategoryId = [categories["Зернові та крупи"]]
             },
             new()
             {
                 Name = "Банан", IsSystem = true,
                 Calories = 89, Protein = 1.1m, Fat = 0.3m, Carbs = 23, GlycemicIndex = 51,
-                Price = 0.30m, CategoryId = categories["Фрукти"]
+                Price = 0.30m, CategoryId = [categories["Фрукти"]]
             },
             new()
             {
                 Name = "Яблуко", IsSystem = true,
                 Calories = 52, Protein = 0.3m, Fat = 0.2m, Carbs = 14, GlycemicIndex = 36,
-                Price = 0.45m, CategoryId = categories["Фрукти"]
+                Price = 0.45m, CategoryId = [categories["Фрукти"]]
             },
             new()
             {
                 Name = "Броколі", IsSystem = true,
                 Calories = 34, Protein = 2.8m, Fat = 0.4m, Carbs = 7, GlycemicIndex = 15,
-                Price = 1.20m, CategoryId = categories["Овочі"]
+                Price = 1.20m, CategoryId = [categories["Овочі"]]
             },
             new()
             {
                 Name = "Помідор", IsSystem = true,
                 Calories = 18, Protein = 0.9m, Fat = 0.2m, Carbs = 3.9m, GlycemicIndex = 15,
-                Price = 0.80m, CategoryId = categories["Овочі"]
+                Price = 0.80m, CategoryId = [categories["Овочі"]]
             },
             new()
             {
                 Name = "Картопля", IsSystem = true,
                 Calories = 77, Protein = 2, Fat = 0.1m, Carbs = 17, GlycemicIndex = 78,
-                Price = 0.35m, CategoryId = categories["Овочі"]
+                Price = 0.35m, CategoryId = [categories["Овочі"]]
             },
             new()
             {
                 Name = "Лосось", IsSystem = true,
                 Calories = 208, Protein = 20, Fat = 13, Carbs = 0, GlycemicIndex = 0,
-                Price = 8.99m, CategoryId = categories["Морепродукти"]
+                Price = 8.99m, CategoryId = [categories["Морепродукти"]]
             },
             new()
             {
                 Name = "Олія оливкова", IsSystem = true,
                 Calories = 884, Protein = 0, Fat = 100, Carbs = 0, GlycemicIndex = 0,
-                Price = 3.50m, CategoryId = categories["Олії та жири"]
+                Price = 3.50m, CategoryId = [categories["Олії та жири"]]
             },
             new()
             {
                 Name = "Йогурт грецький", IsSystem = true,
                 Calories = 59, Protein = 10, Fat = 0.4m, Carbs = 3.6m, GlycemicIndex = 11,
-                Price = 1.50m, CategoryId = categories["Молочні продукти та яйця"]
+                Price = 1.50m, CategoryId = [categories["Молочні продукти та яйця"]]
             },
             new()
             {
                 Name = "Сочевиця червона", IsSystem = true,
                 Calories = 116, Protein = 9, Fat = 0.4m, Carbs = 20, GlycemicIndex = 21,
-                Price = 0.70m, CategoryId = categories["Бобові"]
+                Price = 0.70m, CategoryId = [categories["Бобові"]]
             },
             new()
             {
                 Name = "Хліб цільнозерновий", IsSystem = true,
                 Calories = 247, Protein = 13, Fat = 3.4m, Carbs = 41, GlycemicIndex = 69,
-                Price = 1.99m, CategoryId = categories["Зернові та крупи"]
+                Price = 1.99m, CategoryId = [categories["Зернові та крупи"]]
             },
         };
 

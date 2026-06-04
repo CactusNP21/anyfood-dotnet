@@ -33,4 +33,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
+    
+    
 }

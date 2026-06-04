@@ -7,7 +7,6 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/categories")]
-[Authorize(Roles = "Admin")]
 public class CategoryController(ICategoryService categoryService) : ControllerBase
 {
     [HttpGet]

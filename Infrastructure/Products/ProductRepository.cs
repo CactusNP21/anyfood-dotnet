@@ -16,8 +16,10 @@ public class ProductRepository(AppDbContext context) : IProductRepository
         var query = context.Products.AsQueryable();
 
         if (filter.CategoryIds is { Count: > 0 })
-            query = query.Where(p => filter.CategoryIds.Contains(p.CategoryId));
-
+        {
+            var ids = filter.CategoryIds.ToList(); // snapshot
+            query = query.Where(p => p.CategoryId.Any((catId) => ids.Contains(catId)));
+        }
         if (filter.MinPrice.HasValue)
             query = query.Where(p => p.Price >= filter.MinPrice.Value);
 
