@@ -6,6 +6,8 @@ public interface ICategoryRepository
 {
     Task<IReadOnlyList<Category>> GetAllAsync();
     Task<Category?> GetByIdAsync(int id);
+    Task<IReadOnlyList<Category>> GetByIdsAsync(int[] ids);
+
     Task<Category?> GetByNameAsync(string name);
     Task<bool> HasProductsAsync(int id);
     Task<Category> CreateAsync(Category category);

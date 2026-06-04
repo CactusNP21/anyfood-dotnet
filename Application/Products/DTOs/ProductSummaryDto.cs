@@ -1,3 +1,4 @@
+using Application.Categories.DTOs;
 using Domain.Entities;
 
 namespace Application.Products.DTOs;
@@ -12,7 +13,6 @@ public class ProductSummaryDto
     public required decimal Carbs { get; set; }
     public required decimal Price { get; set; }
     public required string ImageUrl { get; set; } = string.Empty;
-    public int CategoryId { get; set; }
-    public Category Category { get; set; } = null!;
+    public ICollection<CategoryDto> Categories { get; set; } = [];
 
 }

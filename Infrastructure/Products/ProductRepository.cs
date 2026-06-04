@@ -10,7 +10,7 @@ namespace Infrastructure.Products;
 public class ProductRepository(AppDbContext context) : IProductRepository
 {
     public async Task<IReadOnlyList<Product>> GetAllAsync()
-        => await context.Products.ToListAsync();
+        => await context.Products.Include(p => p.Categories).ToListAsync();
     public async Task<IReadOnlyList<Product>> FilterAsync(ProductFilterRequest filter)
     {
         var query = context.Products.AsQueryable();
@@ -18,7 +18,7 @@ public class ProductRepository(AppDbContext context) : IProductRepository
         if (filter.CategoryIds is { Count: > 0 })
         {
             var ids = filter.CategoryIds.ToList(); // snapshot
-            query = query.Where(p => p.CategoryId.Any((catId) => ids.Contains(catId)));
+            query = query.Where(p => p.Categories.Any((cat) => ids.Contains(cat.Id)));
         }
         if (filter.MinPrice.HasValue)
             query = query.Where(p => p.Price >= filter.MinPrice.Value);
@@ -36,7 +36,9 @@ public class ProductRepository(AppDbContext context) : IProductRepository
     }
 
     public async Task<Product?> GetByIdAsync(int id)
-        => await context.Products.Include(p => p.Category).Include(p => p.PriceHistory)
+        => await context.Products
+            .Include(p => p.Categories)
+            .Include(p => p.PriceHistory)
             .FirstOrDefaultAsync(p => p.Id == id);
 
     public async Task<IReadOnlyList<Product>> GetByBatchIdAsync(List<int> categoryIds)

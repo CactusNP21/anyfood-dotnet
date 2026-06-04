@@ -22,9 +22,8 @@ public class Product
     public ICollection<ProductPriceHistory> PriceHistory { get; set; } = [];
     public bool IsSystem { get; set; }
 
-    public int[] CategoryId { get; set; }
-    public Category[] Category { get; set; } = null!;
-    
+    public ICollection<Category> Categories { get; set; } = [];
+
     public string? UserId { get; set; }
     public User? User { get; set; }
 }

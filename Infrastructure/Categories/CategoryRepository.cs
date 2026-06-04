@@ -23,13 +23,21 @@ public class CategoryRepository : ICategoryRepository
         => await context.Categories
             .FirstOrDefaultAsync(c => c.Id == id);
 
+    public async Task<IReadOnlyList<Category>> GetByIdsAsync(int[] ids)
+    {
+        var idList = ids.ToList();
+        return await context.Categories
+            .Where(c => idList.Contains(c.Id))
+            .ToListAsync();
+    }
+    
     public async Task<Category?> GetByNameAsync(string name)
         => await context.Categories
             .FirstOrDefaultAsync(c => c.Name == name);
 
     public async Task<bool> HasProductsAsync(int id)
         => await context.Products
-            .AnyAsync(p => p.CategoryId.Any(cat => cat == id));
+            .AnyAsync(p => p.Categories.Any(c => c.Id == id));
 
     public async Task<Category> CreateAsync(Category category)
     {

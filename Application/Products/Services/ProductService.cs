@@ -1,3 +1,4 @@
+using Application.Categories.Interfaces;
 using Application.Products.DTOs;
 using Application.Products.Interfaces;
 using Domain.Entities;
@@ -5,7 +6,7 @@ using Mapster;
 
 namespace Application.Products.Services;
 
-public class ProductService(IProductRepository productRepository) : IProductService
+public class ProductService(IProductRepository productRepository, ICategoryRepository categoryRepository) : IProductService
 {
     public async Task<IReadOnlyList<ProductSummaryDto>> GetAllAsync()
     {
@@ -30,8 +31,15 @@ public class ProductService(IProductRepository productRepository) : IProductServ
     public async Task<ProductDto> CreateAsync(CreateProductRequest request)
     {
         
-        var created = await productRepository.CreateAsync(request.Adapt<Product>());
+        var product = request.Adapt<Product>();
+    
+        // Fetch actual Category entities so EF can link them
+        var categories = await categoryRepository.GetByIdsAsync(request.CategoryIds);
+        product.Categories = categories.ToList();
+    
+        var created = await productRepository.CreateAsync(product);
         return created.Adapt<ProductDto>();
+
     }
 
     public async Task<ProductDto> UpdateAsync(int id, UpdateProductRequest request)

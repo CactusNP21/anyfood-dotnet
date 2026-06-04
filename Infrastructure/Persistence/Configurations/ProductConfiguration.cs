@@ -37,11 +37,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasPrecision(10, 2);
 
         // ── Relationships ──────────────────────────────────────────────────────
-        builder.HasOne(p => p.Category)
-            .WithMany()
-            .HasForeignKey(p => p.CategoryId)
-            .OnDelete(DeleteBehavior.Restrict);
-
+        builder.HasMany(p => p.Categories).WithMany().UsingEntity("ProductCategories");
+        
         builder.HasOne(p => p.User)
             .WithMany()
             .HasForeignKey(p => p.UserId)
@@ -51,7 +48,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         // ── Indexes ────────────────────────────────────────────────────────────
         builder.HasIndex(p => p.IsSystem);
         builder.HasIndex(p => p.UserId);
-        builder.HasIndex(p => p.CategoryId);
     }
 }
 

@@ -1,3 +1,4 @@
+using Application.Categories.DTOs;
 using Domain.Entities;
 
 namespace Application.Products.DTOs;
@@ -17,8 +18,7 @@ public class ProductDto
     public bool IsSystem { get; set; }
     public float? Weight { get; set; }
 
-    public int CategoryId { get; set; }
-    public Category Category { get; set; } = null!;
+    public ICollection<CategoryDto> Categories { get; set; } = [];
 
     public string? UserId { get; set; }
     public User? User { get; set; }
