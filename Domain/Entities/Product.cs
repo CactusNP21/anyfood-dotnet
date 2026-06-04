@@ -5,15 +5,15 @@ namespace Domain.Entities;
 public class Product
 {
     public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public decimal Calories { get; set; }
-    public decimal Protein { get; set; }
-    public decimal Fat { get; set; }
-    public decimal Carbs { get; set; }
+    public required string Name { get; set; } = string.Empty;
+    public required decimal Calories { get; set; }
+    public required decimal Protein { get; set; }
+    public required decimal Fat { get; set; }
+    public required decimal Carbs { get; set; }
     public int? GlycemicIndex { get; set; }
     public string? ImageUrl { get; set; }
 
-    public decimal Price
+    public required decimal Price
     {
         get;
         set;

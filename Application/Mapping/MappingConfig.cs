@@ -1,3 +1,4 @@
+using Application.Products.DTOs;
 using Application.Recipes.DTOs;
 using Application.Recipes.Models;
 using Domain.Entities;
@@ -10,6 +11,12 @@ public static class MappingConfig
     public static void Configure()
     {
 
+        TypeAdapterConfig<UpdateProductRequest, Product>
+            .NewConfig()
+            .Ignore(dest => dest.Id)
+            .Ignore(dest => dest.Categories); // prevent Mapster from wiping the nav property too
+
+        
         TypeAdapterConfig<Recipe, RecipeVersion>
             .NewConfig()
             .Map(dest => dest.VersionNumber, src => 0);

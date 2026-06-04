@@ -25,5 +25,5 @@ public class UpdateProductRequest
     [Required]
     public decimal Price { get; set; }
 
-    [Required] public int[] CategoryIds { get; set; } = [];
+    [Required] public int[] Categories { get; set; } = [];
 }

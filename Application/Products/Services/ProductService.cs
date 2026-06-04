@@ -42,16 +42,30 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
 
     }
 
+    private decimal CalculateCalories(decimal carbs, decimal fats, decimal proteins)
+    {
+        return carbs * 4 + fats * 9 + proteins * 4;
+    }
+    
     public async Task<ProductDto> UpdateAsync(int id, UpdateProductRequest request)
     {
         var product = await productRepository.GetByIdAsync(id)
                       ?? throw new KeyNotFoundException("Продукт не знайдено.");
 
-        // Мапимо request на існуючий відслідковуваний об'єкт
-        request.Adapt(product);
+        product.Name = request.Name;
+        product.Carbs = request.Carbs;
+        product.Fat = request.Fat;
+        product.Protein = request.Protein;
+        product.Calories = CalculateCalories(request.Carbs, request.Fat, request.Protein);
+        product.Price = request.Price;
+        product.ImageUrl = request.ImageUrl;
+        
+        var categories = await categoryRepository.GetByIdsAsync(request.Categories);
+        product.Categories = categories.ToList();
 
         var updated = await productRepository.UpdateAsync(product);
         return updated.Adapt<ProductDto>();
+        
     }
 
     public async Task DeleteAsync(int id)
