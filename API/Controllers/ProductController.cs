@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.Products.DTOs;
 using Application.Products.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -33,7 +34,9 @@ public class ProductController(IProductService productService) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create(CreateProductRequest request)
     {
-        var product = await productService.CreateAsync(request);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new UnauthorizedAccessException();
+        var isAdmin = User.IsInRole("Admin");
+        var product = await productService.CreateAsync(request, userId, isAdmin);
         return Ok(product);
     }
     

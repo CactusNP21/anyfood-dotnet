@@ -28,15 +28,27 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         return product.Adapt<ProductDto>();
     }
 
-    public async Task<ProductDto> CreateAsync(CreateProductRequest request)
+    public async Task<ProductDto> CreateAsync(CreateProductRequest request, string userId, bool isSystem)
     {
-        
-        var product = request.Adapt<Product>();
-    
-        // Fetch actual Category entities so EF can link them
         var categories = await categoryRepository.GetByIdsAsync(request.CategoryIds);
-        product.Categories = categories.ToList();
-    
+
+        var product = new Product
+        {
+            Id = 0,
+            Name = request.Name,
+            Calories = CalculateCalories(request.Carbs, request.Fat, request.Protein),
+            Protein = request.Protein,
+            Fat = request.Fat,
+            Carbs = request.Carbs,
+            GlycemicIndex = null,
+            ImageUrl = request.ImageUrl,
+            Price = request.Price,
+            IsSystem = isSystem,
+            Categories = categories.ToList(),
+            UserId = userId,
+            User = null
+        };
+        
         var created = await productRepository.CreateAsync(product);
         return created.Adapt<ProductDto>();
 

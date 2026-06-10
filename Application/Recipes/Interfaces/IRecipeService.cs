@@ -3,7 +3,14 @@ using Application.Recipes.DTOs;
 
 namespace Application.Recipes.Interfaces;
 
-public interface IRecipeService : IBaseService<RecipeDto, CreateRecipeRequest, UpdateRecipeRequest>
+public interface IRecipeService
 {
     public Task SaveRecipe(int recipeId, string userId);
+
+    public Task<RecipeDto> CreateAsync(CreateRecipeRequest request, bool isAdmin);
+    
+    Task<IReadOnlyList<RecipeDto>> GetAllAsync();
+    Task<RecipeDto> GetByIdAsync(int id);
+    Task<RecipeDto> UpdateAsync(int id, UpdateRecipeRequest request);
+    Task DeleteAsync(int id);
 };

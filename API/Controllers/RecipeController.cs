@@ -30,8 +30,10 @@ public class RecipeController(IRecipeService service) : ControllerBase
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         request.UserId = userId;
-
-        var recipe = await service.CreateAsync(request);
+        
+        var isAdmin = User.IsInRole("Admin");
+        
+        var recipe = await service.CreateAsync(request, isAdmin);
         return CreatedAtAction(nameof(GetById), new { id = recipe.Id }, recipe);
     }
 

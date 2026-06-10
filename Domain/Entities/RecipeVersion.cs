@@ -10,18 +10,18 @@ public class RecipeVersion
     public int VersionNumber { get; set; }
 
     // ── Snapshot основних полів рецепту ─────────────────────────────────────
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string ImageUrl { get; set; } = string.Empty;
-    public int Portions { get; set; }
-    public int Duration { get; set; }
+    public required string Name { get; set; } = string.Empty;
+    public required string Description { get; set; } = string.Empty;
+    public required string ImageUrl { get; set; } = string.Empty;
+    public required int Portions { get; set; }
+    public required int Duration { get; set; }
 
     // ── Snapshot розрахованих БЖВ (на 100г рецепту) ─────────────────────────
-    public float Calories { get; set; }
-    public float Protein { get; set; }
-    public float Fat { get; set; }
-    public float Carbs { get; set; }
-    public float Price { get; set; }
+    public required float Calories { get; set; }
+    public required float Protein { get; set; }
+    public required float Fat { get; set; }
+    public required float Carbs { get; set; }
+    public required float Price { get; set; }
 
     // ── Інгредієнти цієї версії ──────────────────────────────────────────────
     public ICollection<RecipeVersionIngredient> Ingredients { get; set; } = [];
