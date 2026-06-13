@@ -29,7 +29,6 @@ using Infrastructure.Products;
 using Infrastructure.RecipeCategory;
 using Infrastructure.Recipes;
 using Infrastructure.Seed;
-using Infrastructure.Seed.ProductSeeder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -135,9 +134,6 @@ builder.Services.AddScoped<IShoppingSourceResolver, DayPlanSourceResolver>();
 builder.Services.AddScoped<IShoppingListService, ShoppingListService>();
 builder.Services.AddScoped<IShoppingListRepository, ShoppingListRepository>();
 
-builder.Services.AddScoped<ProductSeeder>();
-
-
 // ── Build ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
@@ -150,15 +146,13 @@ using (var scope = app.Services.CreateScope())
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    var seeder = scope.ServiceProvider.GetRequiredService<ProductSeeder>();
     
     await RoleSeeder.SeedAsync(roleManager);
     await AdminSeeder.SeedAsync(userManager, roleManager);
 
     await DataSeeder.SeedAsync(db);
     await RecipeLatestVersionSeeder.SeedAsync(db);
-    await seeder.SeedProductsAsync();
-
+    
 }
 
 // if (app.Environment.IsDevelopment())
