@@ -11,6 +11,7 @@ using Application.Mapping;
 using Application.Products.Interfaces;
 using Application.Products.Services;
 using Application.RecipeCategories.Interfaces;
+using Application.RecipeCategories.Services;
 using Application.Recipes.Interfaces;
 using Application.Recipes.Services;
 using Application.ShoppingList.Interfaces;
@@ -117,7 +118,7 @@ builder.Services.AddScoped<IProductPriceHistoryRepository, ProductPriceHistoryRe
 
 // ── RecipeCategories ─────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IRecipeCategoryRepository, RecipeCategoryRepository>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IRecipeCategoryService, RecipeCategoryService>();
 
 // ── Recipe ─────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IRecipeRepository, RecipesRepository>();

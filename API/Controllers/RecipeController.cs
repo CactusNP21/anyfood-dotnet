@@ -36,6 +36,13 @@ public class RecipeController(IRecipeService service) : ControllerBase
         var recipe = await service.CreateAsync(request, isAdmin);
         return CreatedAtAction(nameof(GetById), new { id = recipe.Id }, recipe);
     }
+    
+    // [HttpGet("filter")]
+    // public async Task<ActionResult<IReadOnlyList<RecipeSummaryDto>>> Filter([FromQuery] ProductFilterRequest filter)
+    // {
+    //     var products = await productService.FilterAsync(filter);
+    //     return Ok(products);
+    // }
 
     [HttpPut("{id:int}")]
     [Authorize]

@@ -27,7 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="Data\FoodData_Central_foundation_food_json_2026-04-30.json" />
+      <_ContentIncludedByDefault Remove="Data\FoodData_Central_foundation_food_json_2026-04-30.json" />
     </ItemGroup>
 
 </Project>
