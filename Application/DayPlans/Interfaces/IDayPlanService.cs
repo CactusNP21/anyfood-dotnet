@@ -6,6 +6,6 @@ public interface IDayPlanService
 {
     Task<DayPlanDto> CreateAsync(CreateDayPlanRequest request, string userId);
     Task<DayPlanDto> GetByIdAsync(int id);
-    Task<IReadOnlyList<DayPlanDto>> GetByUserAsync(string userId);
+    Task<IReadOnlyList<UserDayPlanShort>> GetByUserAsync(string userId);
     Task DeleteAsync(int id);
 }

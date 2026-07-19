@@ -7,6 +7,8 @@ using Application.Categories.Interfaces;
 using Application.Categories.Services;
 using Application.DayPlans.Interfaces;
 using Application.DayPlans.Services;
+using Application.Fridge.Interfaces;
+using Application.Fridge.Services;
 using Application.Mapping;
 using Application.Products.Interfaces;
 using Application.Products.Services;
@@ -23,11 +25,12 @@ using Domain.Entities;
 using Infrastructure;
 using Infrastructure.Categories;
 using Infrastructure.DayPlans;
+using Infrastructure.Fridge;
 using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Interceptors;
 using Infrastructure.Products;
-using Infrastructure.RecipeCategory;
+using Infrastructure.RecipeCategories;
 using Infrastructure.Recipes;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -135,6 +138,9 @@ builder.Services.AddScoped<IShoppingSourceResolver, DayPlanSourceResolver>();
 builder.Services.AddScoped<IShoppingListService, ShoppingListService>();
 builder.Services.AddScoped<IShoppingListRepository, ShoppingListRepository>();
 
+builder.Services.AddScoped<IFridgeRepository, FridgeRepository>();
+builder.Services.AddScoped<IFridgeService, FridgeService>();
+
 // ── Build ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 
@@ -151,9 +157,6 @@ using (var scope = app.Services.CreateScope())
     await RoleSeeder.SeedAsync(roleManager);
     await AdminSeeder.SeedAsync(userManager, roleManager);
 
-    await DataSeeder.SeedAsync(db);
-    await RecipeLatestVersionSeeder.SeedAsync(db);
-    
 }
 
 // if (app.Environment.IsDevelopment())

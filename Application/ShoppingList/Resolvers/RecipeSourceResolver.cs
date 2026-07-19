@@ -12,12 +12,12 @@ public class RecipeSourceResolver(IRecipeRepository recipeRepository) : IShoppin
 
         foreach (var source in request.Recipes)
         {
-            var version = await recipeRepository.GetVersionByIdAsync(source.RecipeVersionId)
+            var version = await recipeRepository.GetByIdAsync(source.RecipeVersionId)
                           ?? throw new KeyNotFoundException($"Рецепт id={source.RecipeVersionId} не має версій.");
 
-            var totalWeight = version.Ingredients.Sum(i => i.Weight);
+            var totalWeight = version.RecipeProducts.Sum(i => i.Weight);
 
-            foreach (var ingredient in version.Ingredients)
+            foreach (var ingredient in version.RecipeProducts)
             {
                 var ratio = totalWeight > 0 ? ingredient.Weight / totalWeight : 0;
                 var weight = ratio * source.Weight;

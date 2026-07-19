@@ -23,5 +23,10 @@ public class CreateProductRequest
     // public string GlycemicIndex { get; set; }
     [Required]
     public string ImageUrl { get; set; }
+    
+    [Required]
+    public int? ParentProductId { get; set; }
+    
+    public float? EdiblePortionFactor { get; set; }
 
 }

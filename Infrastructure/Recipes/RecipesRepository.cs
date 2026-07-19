@@ -36,20 +36,19 @@ public class RecipesRepository(AppDbContext ctx): IRecipeRepository
         await ctx.SaveChangesAsync();
     }
 
-    public async Task SaveRecipeAsync(int recipeVersionId, string userId)
+    public async Task SaveRecipeAsync(int recipeId, string userId)
     { 
         ctx.SavedRecipes.Add(new SavedRecipe
         {
             UserId = userId,
-            RecipeVersionId = recipeVersionId,
+            RecipeId = recipeId,
         });
         await ctx.SaveChangesAsync();
     }
 
-    public async Task<Recipe> CreateRecipeVersionAsync(Recipe recipe, RecipeVersion recipeVersion)
+    public async Task<Recipe> CreateRecipeAsync(Recipe recipe)
     {
         ctx.Recipes.Add(recipe);
-        ctx.RecipeVersions.Add(recipeVersion);
         await ctx.SaveChangesAsync();
         return recipe;
     }
@@ -60,39 +59,4 @@ public class RecipesRepository(AppDbContext ctx): IRecipeRepository
         await ctx.SaveChangesAsync();
     }
     
-    // ── Версіонування ────────────────────────────────────────────────────────
-
-    public async Task<int> GetLatestVersionNumberAsync(int recipeId)
-        => await ctx.RecipeVersions
-            .Where(rv => rv.RecipeId == recipeId)
-            .Select(rv => rv.VersionNumber)
-            .DefaultIfEmpty(0)
-            .MaxAsync();
-
-    public async Task<RecipeVersion> CreateVersionAsync(RecipeVersion version)
-    {
-        ctx.RecipeVersions.Add(version);
-        await ctx.SaveChangesAsync();
-        return version;
-    }
-
-    public async Task<IReadOnlyList<RecipeVersion>> GetVersionsAsync(int recipeId)
-        => await ctx.RecipeVersions
-            .Where(rv => rv.RecipeId == recipeId)
-            .OrderByDescending(rv => rv.VersionNumber)
-            // Без інгредієнтів — для списку достатньо базових полів
-            .ToListAsync();
-
-    public async Task<RecipeVersion?> GetVersionByIdAsync(int recipeVersionId)
-        => await ctx.RecipeVersions
-            .Include(rv => rv.Ingredients)
-            .ThenInclude(i => i.Product)
-            .FirstOrDefaultAsync(rv => rv.Id == recipeVersionId);
-    
-    // Infrastructure/Recipes/RecipesRepository.cs
-    public async Task<RecipeVersion?> GetLatestVersionAsync(int recipeId)
-        => await ctx.RecipeVersions
-            .Where(rv => rv.RecipeId == recipeId)
-            .OrderByDescending(rv => rv.VersionNumber)
-            .FirstOrDefaultAsync();
 }

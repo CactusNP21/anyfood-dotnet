@@ -5,6 +5,8 @@ namespace Application.Products.Interfaces;
 
 public interface IProductRepository
 {
+    Task<Product?> GetByIdWithChildrenAsync(int id);
+
     Task<IReadOnlyList<Product>> GetAllAsync();
     Task<IReadOnlyList<Product>> FilterAsync(ProductFilterRequest filter);
     Task<Product?> GetByIdAsync(int id);

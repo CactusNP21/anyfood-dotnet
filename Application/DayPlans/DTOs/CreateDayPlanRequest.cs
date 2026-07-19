@@ -11,4 +11,5 @@ public class DayPlanEntryDto
     public int? ProductId { get; set; }      // замість ProductVersionId
     public int? RecipeId { get; set; } 
     public float Weight { get; set; }
+    public short Time { get; set; }
 }

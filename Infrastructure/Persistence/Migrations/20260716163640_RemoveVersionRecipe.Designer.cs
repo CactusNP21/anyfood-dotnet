@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260716163640_RemoveVersionRecipe")]
+    partial class RemoveVersionRecipe
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -191,31 +194,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<decimal>("OwnCalories")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("OwnCarbs")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("OwnFat")
-                        .HasColumnType("numeric");
-
-                    b.Property<int?>("OwnGlycemicIndex")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("OwnPrice")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("OwnProtein")
-                        .HasColumnType("numeric");
-
-                    b.Property<int?>("ParentProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Path")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<decimal>("Price")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
@@ -230,8 +208,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsSystem");
-
-                    b.HasIndex("ParentProductId");
 
                     b.HasIndex("UserId");
 
@@ -748,16 +724,10 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Product", b =>
                 {
-                    b.HasOne("Domain.Entities.Product", "ParentProduct")
-                        .WithMany("Children")
-                        .HasForeignKey("ParentProductId");
-
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("ParentProduct");
 
                     b.Navigation("User");
                 });
@@ -954,8 +924,6 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Product", b =>
                 {
-                    b.Navigation("Children");
-
                     b.Navigation("PriceHistory");
                 });
 

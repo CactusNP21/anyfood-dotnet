@@ -9,6 +9,10 @@ namespace Infrastructure.Products;
 
 public class ProductRepository(AppDbContext context) : IProductRepository
 {
+    public async Task<Product?> GetByIdWithChildrenAsync(int id)
+        => await context.Products
+            .Include(p => p.Children)
+            .FirstOrDefaultAsync(p => p.Id == id);
     public async Task<IReadOnlyList<Product>> GetAllAsync()
         => await context.Products.Include(p => p.Categories).ToListAsync();
     public async Task<IReadOnlyList<Product>> FilterAsync(ProductFilterRequest filter)
@@ -43,7 +47,6 @@ public class ProductRepository(AppDbContext context) : IProductRepository
 
     public async Task<IReadOnlyList<Product>> GetByBatchIdAsync(List<int> categoryIds)
         => await context.Products
-            .AsNoTracking()
             .Where(p => ((IEnumerable<int>)categoryIds).Contains(p.Id))
             .ToListAsync();
 

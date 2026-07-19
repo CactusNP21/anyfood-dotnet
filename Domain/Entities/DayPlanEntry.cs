@@ -7,13 +7,13 @@ public class DayPlanEntry
     public int DayPlanId { get; set; }
     public DayPlan DayPlan { get; set; } = null!;
 
-    // Або версія рецепту, або версія продукту — рівно один із двох
-    public int? RecipeVersionId { get; set; }
-    public RecipeVersion? RecipeVersion { get; set; }
+    public int? RecipeId { get; set; }
+    public Recipe? Recipe { get; set; }
 
     public int? ProductId { get; set; }
     public Product? Product { get; set; }
 
     // Вага в грамах
     public float Weight { get; set; }
+    public required short Time { get; set; }
 }

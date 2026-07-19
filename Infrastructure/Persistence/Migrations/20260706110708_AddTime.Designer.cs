@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260706110708_AddTime")]
+    partial class AddTime
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -81,7 +84,7 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<int?>("ProductId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("RecipeId")
+                    b.Property<int?>("RecipeVersionId")
                         .HasColumnType("integer");
 
                     b.Property<short>("Time")
@@ -96,59 +99,12 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("RecipeId");
+                    b.HasIndex("RecipeVersionId");
 
                     b.ToTable("DayPlanEntries", t =>
                         {
                             t.HasCheckConstraint("CK_DayPlanEntry_RecipeVersionOrProductVersion", "(\"RecipeVersionId\" IS NOT NULL) != (\"ProductId\" IS NOT NULL)");
                         });
-                });
-
-            modelBuilder.Entity("Domain.Entities.Fridge", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Fridges");
-                });
-
-            modelBuilder.Entity("Domain.Entities.FridgeItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("FridgeId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<float>("Weight")
-                        .HasColumnType("real");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("FridgeId", "ProductId")
-                        .IsUnique();
-
-                    b.ToTable("FridgeItems");
                 });
 
             modelBuilder.Entity("Domain.Entities.Product", b =>
@@ -166,11 +122,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<decimal>("Carbs")
                         .HasPrecision(7, 2)
                         .HasColumnType("numeric(7,2)");
-
-                    b.Property<float>("EdiblePortionFactor")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("real")
-                        .HasDefaultValue(1f);
 
                     b.Property<decimal>("Fat")
                         .HasPrecision(7, 2)
@@ -191,31 +142,6 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<decimal>("OwnCalories")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("OwnCarbs")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("OwnFat")
-                        .HasColumnType("numeric");
-
-                    b.Property<int?>("OwnGlycemicIndex")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("OwnPrice")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("OwnProtein")
-                        .HasColumnType("numeric");
-
-                    b.Property<int?>("ParentProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Path")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<decimal>("Price")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
@@ -230,8 +156,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsSystem");
-
-                    b.HasIndex("ParentProductId");
 
                     b.HasIndex("UserId");
 
@@ -293,8 +217,8 @@ namespace Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsSystem")
-                        .HasColumnType("boolean");
+                    b.Property<int?>("LatestVersionId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -313,6 +237,9 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LatestVersionId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -355,6 +282,94 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("RecipeProducts");
                 });
 
+            modelBuilder.Entity("Domain.Entities.RecipeVersion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<float>("Calories")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Carbs")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("integer");
+
+                    b.Property<float>("Fat")
+                        .HasColumnType("real");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Portions")
+                        .HasColumnType("integer");
+
+                    b.Property<float>("Price")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Protein")
+                        .HasColumnType("real");
+
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("RecipeId");
+
+                    b.ToTable("RecipeVersions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RecipeVersionIngredient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RecipeVersionId")
+                        .HasColumnType("integer");
+
+                    b.Property<float>("Weight")
+                        .HasColumnType("real");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("RecipeVersionId");
+
+                    b.ToTable("RecipeVersionIngredients");
+                });
+
             modelBuilder.Entity("Domain.Entities.SavedProduct", b =>
                 {
                     b.Property<string>("UserId")
@@ -375,12 +390,12 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<string>("UserId")
                         .HasColumnType("text");
 
-                    b.Property<int>("RecipeId")
+                    b.Property<int>("RecipeVersionId")
                         .HasColumnType("integer");
 
-                    b.HasKey("UserId", "RecipeId");
+                    b.HasKey("UserId", "RecipeVersionId");
 
-                    b.HasIndex("RecipeId");
+                    b.HasIndex("RecipeVersionId");
 
                     b.ToTable("SavedRecipes");
                 });
@@ -705,59 +720,24 @@ namespace Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("ProductId");
 
-                    b.HasOne("Domain.Entities.Recipe", "Recipe")
+                    b.HasOne("Domain.Entities.RecipeVersion", "RecipeVersion")
                         .WithMany()
-                        .HasForeignKey("RecipeId");
+                        .HasForeignKey("RecipeVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("DayPlan");
 
                     b.Navigation("Product");
 
-                    b.Navigation("Recipe");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Fridge", b =>
-                {
-                    b.HasOne("Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Domain.Entities.FridgeItem", b =>
-                {
-                    b.HasOne("Domain.Entities.Fridge", "Fridge")
-                        .WithMany("Items")
-                        .HasForeignKey("FridgeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Fridge");
-
-                    b.Navigation("Product");
+                    b.Navigation("RecipeVersion");
                 });
 
             modelBuilder.Entity("Domain.Entities.Product", b =>
                 {
-                    b.HasOne("Domain.Entities.Product", "ParentProduct")
-                        .WithMany("Children")
-                        .HasForeignKey("ParentProductId");
-
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("ParentProduct");
 
                     b.Navigation("User");
                 });
@@ -775,9 +755,16 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Recipe", b =>
                 {
+                    b.HasOne("Domain.Entities.RecipeVersion", "LatestVersion")
+                        .WithOne()
+                        .HasForeignKey("Domain.Entities.Recipe", "LatestVersionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
+
+                    b.Navigation("LatestVersion");
 
                     b.Navigation("User");
                 });
@@ -801,6 +788,42 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Recipe");
                 });
 
+            modelBuilder.Entity("Domain.Entities.RecipeVersion", b =>
+                {
+                    b.HasOne("Domain.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.HasOne("Domain.Entities.Recipe", "Recipe")
+                        .WithMany("Versions")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RecipeVersionIngredient", b =>
+                {
+                    b.HasOne("Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.RecipeVersion", "RecipeVersion")
+                        .WithMany("Ingredients")
+                        .HasForeignKey("RecipeVersionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("RecipeVersion");
+                });
+
             modelBuilder.Entity("Domain.Entities.SavedProduct", b =>
                 {
                     b.HasOne("Domain.Entities.Product", "Product")
@@ -822,13 +845,13 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.SavedRecipe", b =>
                 {
-                    b.HasOne("Domain.Entities.Recipe", "Recipe")
+                    b.HasOne("Domain.Entities.RecipeVersion", "RecipeVersion")
                         .WithMany()
-                        .HasForeignKey("RecipeId")
+                        .HasForeignKey("RecipeVersionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Recipe");
+                    b.Navigation("RecipeVersion");
                 });
 
             modelBuilder.Entity("Domain.Entities.ShoppingList", b =>
@@ -947,21 +970,21 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Entries");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Fridge", b =>
-                {
-                    b.Navigation("Items");
-                });
-
             modelBuilder.Entity("Domain.Entities.Product", b =>
                 {
-                    b.Navigation("Children");
-
                     b.Navigation("PriceHistory");
                 });
 
             modelBuilder.Entity("Domain.Entities.Recipe", b =>
                 {
                     b.Navigation("RecipeProducts");
+
+                    b.Navigation("Versions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.RecipeVersion", b =>
+                {
+                    b.Navigation("Ingredients");
                 });
 
             modelBuilder.Entity("Domain.Entities.ShoppingList", b =>

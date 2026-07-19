@@ -3,4 +3,7 @@ using Domain.Entities;
 
 namespace Application.RecipeCategories.Interfaces;
 
-public interface IRecipeCategoryRepository:IBaseRepository<RecipeCategory>;
+public interface IRecipeCategoryRepository : IBaseRepository<RecipeCategory>
+{
+    Task<IReadOnlyList<RecipeCategory>> GetByBatchIdAsync(List<int> categoryId);
+};

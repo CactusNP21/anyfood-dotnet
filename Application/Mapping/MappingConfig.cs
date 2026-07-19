@@ -15,12 +15,6 @@ public static class MappingConfig
             .NewConfig()
             .Ignore(dest => dest.Id)
             .Ignore(dest => dest.Categories); // prevent Mapster from wiping the nav property too
-
-        
-        TypeAdapterConfig<Recipe, RecipeVersion>
-            .NewConfig()
-            .Map(dest => dest.VersionNumber, src => 0);
-        
         
         TypeAdapterConfig<CreateRecipeRequest, Recipe>
             .NewConfig()

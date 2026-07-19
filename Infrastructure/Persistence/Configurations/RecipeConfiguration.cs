@@ -8,10 +8,12 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
 {
     public void Configure(EntityTypeBuilder<Recipe> builder)
     {
-        builder.HasOne(r => r.LatestVersion)
-            .WithOne()
-            .HasForeignKey<Recipe>(r => r.LatestVersionId)
-            .OnDelete(DeleteBehavior.SetNull)
-            .IsRequired(false);
+        
+        builder.HasMany(r => r.RecipeCategories)
+            .WithMany()
+            .UsingEntity("RecipeCategoryRecipes"); // actual join table
+
     }
+    
+    
 }

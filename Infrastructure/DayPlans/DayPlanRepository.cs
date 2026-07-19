@@ -40,7 +40,10 @@ public class DayPlanRepository(AppDbContext ctx) : IDayPlanRepository
     public async Task<DayPlan?> GetByIdWithDetailsAsync(int id)
         => await ctx.DayPlans
             .Include(d => d.Entries)
-            .ThenInclude(e => e.RecipeVersion)
-            .ThenInclude(rv => rv!.Ingredients)
+             .ThenInclude(entry => entry.Product)
+            .Include(d => d.Entries)
+                .ThenInclude(e => e.Recipe)
+                .ThenInclude(rv => rv!.RecipeProducts)
+                .ThenInclude(recipeProduct => recipeProduct.Product)
             .FirstOrDefaultAsync(d => d.Id == id);
 }

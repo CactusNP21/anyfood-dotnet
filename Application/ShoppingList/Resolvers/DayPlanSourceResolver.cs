@@ -25,10 +25,10 @@ public class DayPlanSourceResolver(IDayPlanRepository dayPlanRepository) : IShop
                         entry.Weight));
                 }
 
-                if (entry.RecipeVersion is not null)
+                if (entry.Recipe is not null)
                 {
-                    var total = entry.RecipeVersion.Ingredients.Sum(i => i.Weight);
-                    foreach (var ingredient in entry.RecipeVersion.Ingredients)
+                    var total = entry.Recipe.RecipeProducts.Sum(i => i.Weight);
+                    foreach (var ingredient in entry.Recipe.RecipeProducts)
                     {
                         var ratio = total > 0 ? ingredient.Weight / total : 0;
                         result.Add(new ShoppingIngredient(

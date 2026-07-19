@@ -1,8 +1,9 @@
 using Application.RecipeCategories.Interfaces;
+using Domain.Entities;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.RecipeCategory;
+namespace Infrastructure.RecipeCategories;
 
 public class RecipeCategoryRepository(AppDbContext ctx):IRecipeCategoryRepository
 {
@@ -10,6 +11,12 @@ public class RecipeCategoryRepository(AppDbContext ctx):IRecipeCategoryRepositor
     {
         return await ctx.RecipeCategories.ToListAsync();
     }
+    
+    public async Task<IReadOnlyList<RecipeCategory>> GetByBatchIdAsync(List<int> categoryIds)
+        => await ctx.RecipeCategories
+            .Where(p => ((IEnumerable<int>)categoryIds).Contains(p.Id))
+            .ToListAsync();
+
 
     public async Task<Domain.Entities.RecipeCategory?> GetByIdAsync(int id)
     {

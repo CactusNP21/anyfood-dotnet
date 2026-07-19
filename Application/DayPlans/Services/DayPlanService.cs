@@ -12,7 +12,6 @@ public class DayPlanService(
     IProductRepository productRepository,
     IRecipeRepository recipeRepository) : IDayPlanService
 {
-    // Application/DayPlans/Services/DayPlanService.cs
     public async Task<DayPlanDto> CreateAsync(CreateDayPlanRequest request, string userId)
     {
         ValidateEntries(request.Entries);
@@ -27,17 +26,19 @@ public class DayPlanService(
                 {
                     ProductId = e.ProductId,
                     Weight = e.Weight,
+                    Time = e.Time,
                 });
             }
             else if (e.RecipeId is not null)
             {
-                var version = await recipeRepository.GetLatestVersionAsync(e.RecipeId.Value)  // треба додати цей метод
+                var version = await recipeRepository.GetByIdAsync(e.RecipeId.Value)  // треба додати цей метод
                               ?? throw new KeyNotFoundException($"Рецепт з id={e.RecipeId} не має версій.");
 
                 entries.Add(new DayPlanEntry
                 {
-                    RecipeVersionId = version.Id,
+                    RecipeId = version.Id,
                     Weight = e.Weight,
+                    Time = e.Time,
                 });
             }
         }
@@ -55,15 +56,15 @@ public class DayPlanService(
 
     public async Task<DayPlanDto> GetByIdAsync(int id)
     {
-        var dayPlan = await repository.GetByIdAsync(id)
+        var dayPlan = await repository.GetByIdWithDetailsAsync(id)
             ?? throw new KeyNotFoundException("План дня не знайдено.");
-        return dayPlan.Adapt<DayPlanDto>();
+        return ToDayPlanDto(dayPlan);
     }
 
-    public async Task<IReadOnlyList<DayPlanDto>> GetByUserAsync(string userId)
+    public async Task<IReadOnlyList<UserDayPlanShort>> GetByUserAsync(string userId)
     {
         var plans = await repository.GetByUserAsync(userId);
-        return plans.Select(p => p.Adapt<DayPlanDto>()).ToList();
+        return plans.Select(dp => new UserDayPlanShort{ Name = dp.Name, Id = dp.Id }).ToList();
     }
 
     public async Task DeleteAsync(int id)
@@ -75,6 +76,57 @@ public class DayPlanService(
 
     // ── Private ──────────────────────────────────────────────────────────────
 
+    // Application/DayPlans/Services/DayPlanService.cs
+    private static DayPlanDto ToDayPlanDto(DayPlan dayPlan)
+    {
+        float totalCalories = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalPrice = 0;
+
+        foreach (var entry in dayPlan.Entries)
+        {
+            var ratio = entry.Weight / 100f;
+
+            if (entry.Product is not null)
+            {
+                totalCalories += (float)entry.Product.Calories * ratio;
+                totalProtein  += (float)entry.Product.Protein  * ratio;
+                totalFat      += (float)entry.Product.Fat      * ratio;
+                totalCarbs    += (float)entry.Product.Carbs    * ratio;
+                totalPrice    += (float)entry.Product.Price    * ratio;
+            }
+            else if (entry.Recipe is not null)
+            {
+                totalCalories += entry.Recipe.Calories * ratio;
+                totalProtein  += entry.Recipe.Protein  * ratio;
+                totalFat      += entry.Recipe.Fat      * ratio;
+                totalCarbs    += entry.Recipe.Carbs    * ratio;
+                totalPrice    += entry.Recipe.Price    * ratio;
+            }
+            // якщо обидва null - запис некоректний (не мало б статись через валідацію),
+            // просто пропускаємо
+        }
+
+        return new DayPlanDto
+        {
+            Id = dayPlan.Id,
+            Name = dayPlan.Name,
+            UserId = dayPlan.UserId,
+            Entries = dayPlan.Entries.Select(e => new DayPlanEntryResultDto
+            {
+                Id = e.Id,
+                Weight = e.Weight,
+                RecipeId = e.RecipeId,
+                ProductVersionId = e.ProductId,
+                Time = e.Time,
+                Name = e.ProductId is not null ? e.Product!.Name : e.Recipe!.Name,
+            }).ToList(),
+            TotalCalories = totalCalories,
+            TotalProtein = totalProtein,
+            TotalFats = totalFat,
+            TotalCarbs = totalCarbs,
+            TotalPrice = totalPrice,
+        };
+    }
+    
     private static void ValidateEntries(ICollection<DayPlanEntryDto> entries)
     {
         if (entries.Count == 0)

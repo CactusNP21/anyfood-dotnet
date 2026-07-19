@@ -1,5 +1,6 @@
 using Application.Products.DTOs;
 using Application.Products.Interfaces;
+using Application.RecipeCategories.Interfaces;
 using Application.Recipes.DTOs;
 using Application.Recipes.Interfaces;
 using Application.Recipes.Models;
@@ -8,7 +9,10 @@ using Mapster;
 
 namespace Application.Recipes.Services;
 
-public class RecipeService(IRecipeRepository repository, IProductRepository productRepository) : IRecipeService
+public class RecipeService(
+    IRecipeRepository repository,
+    IProductRepository productRepository,
+    IRecipeCategoryRepository recipeCategoryRepository) : IRecipeService
 {
     public async Task<IReadOnlyList<RecipeDto>> GetAllAsync()
     {
@@ -62,45 +66,24 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
         var productIds = request.RecipeProducts.Select(i => i.ProductId).ToList();
         var products = await productRepository.GetByBatchIdAsync(productIds);
 
+        var categoriesIds = request.RecipeCategories.Select(i => i.Id).ToList();
+        var categories = await recipeCategoryRepository.GetByBatchIdAsync(categoriesIds);
+
         var nutrition = CalculateNutritionPer100G(request, products);
 
-        var recipe = CreateRecipeFromRequest(request, nutrition, isAdmin);
+        var recipe = CreateRecipeFromRequest(request, nutrition, categories, isAdmin);
 
-        var recipeVersion = new RecipeVersion
-        {
-            Id = 0,
-            RecipeId = 0,
-            Recipe = recipe,
-            VersionNumber = 1,
-            Name = recipe.Name,
-            Description = recipe.Description,
-            ImageUrl = recipe.ImageUrl,
-            Portions = recipe.Portions,
-            Duration = recipe.Duration,
-            Calories = recipe.Calories,
-            Protein = recipe.Protein,
-            Fat = recipe.Fat,
-            Carbs = recipe.Carbs,
-            Price = recipe.Price,
-            Ingredients = request.RecipeProducts.Select(rp => new RecipeVersionIngredient
-                {
-                    ProductId = rp.ProductId,
-                    Weight = rp.Weight,
-                })
-                .ToList(),
-            CreatedAt = default,
-            CreatedByUserId = null,
-            CreatedByUser = null,
-        };
-
-        var created = await repository.CreateRecipeVersionAsync(recipe, recipeVersion);
-
-        created.LatestVersionId = recipeVersion.Id;
-
+        var created = await repository.CreateRecipeAsync(recipe);
+        
         return created.Adapt<RecipeDto>();
     }
 
-    private Recipe CreateRecipeFromRequest(CreateRecipeRequest request, NutritionPer100G nutrition, bool isAdmin)
+    private Recipe CreateRecipeFromRequest(
+        CreateRecipeRequest request,
+        NutritionPer100G nutrition,
+        IReadOnlyList<RecipeCategory> categories,
+        bool isSystem
+        )
     {
         return new Recipe
         {
@@ -115,11 +98,7 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
                     }
                 )
                 .ToList(),
-            RecipeCategories = request.RecipeCategories.Select(rc => new RecipeCategory
-                {
-                    Id = rc.Id
-                })
-                .ToList(),
+            RecipeCategories = categories.ToList(),
             Portions = request.Portions,
             Description = request.Description,
             Duration = request.Duration,
@@ -128,6 +107,7 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
             Fat = nutrition.Fat,
             Carbs = nutrition.Carbs,
             UserId = request.UserId,
+            IsSystem = isSystem
         };
     }
 
@@ -138,8 +118,8 @@ public class RecipeService(IRecipeRepository repository, IProductRepository prod
 
     public async Task SaveRecipe(int recipeId, string userId)
     {
-        var version = await repository.GetLatestVersionAsync(recipeId) ?? throw new KeyNotFoundException();
-        await repository.SaveRecipeAsync(version.Id, userId);
+        var recipe = await repository.GetByIdAsync(recipeId) ?? throw new KeyNotFoundException();
+        await repository.SaveRecipeAsync(recipe.Id, userId);
     }
 
 

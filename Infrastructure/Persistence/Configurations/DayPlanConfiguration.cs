@@ -37,15 +37,6 @@ public class DayPlanEntryConfiguration : IEntityTypeConfiguration<DayPlanEntry>
             .HasForeignKey(e => e.DayPlanId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Версія рецепту — Restrict, щоб не можна було видалити версію,
-        // яка використовується в плані
-        builder.HasOne(e => e.RecipeVersion)
-            .WithMany()
-            .HasForeignKey(e => e.RecipeVersionId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired(false);
-        
-
         // DB-рівень: рівно один із двох FK заповнений
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_DayPlanEntry_RecipeVersionOrProductVersion",

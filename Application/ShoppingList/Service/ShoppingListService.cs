@@ -23,6 +23,7 @@ public class ShoppingListService(
             .Select(g => new ShoppingListItem
             {
                 ProductId = g.Key,
+                Product = g.First(p => p.ProductId == g.Key).Product, // populate navigation
                 TotalWeight = g.Sum(i => i.Weight),
             })
             .ToList();
