@@ -6,8 +6,7 @@ using Mapster;
 
 namespace Application.Products.Services;
 
-public class ProductService(IProductRepository productRepository, ICategoryRepository categoryRepository)
-    : IProductService
+public class ProductService(IProductRepository productRepository, ICategoryRepository categoryRepository) : IProductService
 {
     public async Task<IReadOnlyList<ProductSummaryDto>> GetAllAsync()
     {
@@ -24,22 +23,27 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
     public async Task<ProductDto> GetByIdAsync(int id)
     {
         var product = await productRepository.GetByIdAsync(id)
-                      ?? throw new KeyNotFoundException("Продукт не знайдено.");
+            ?? throw new KeyNotFoundException("Продукт не знайдено.");
 
         return product.Adapt<ProductDto>();
     }
 
     public async Task<ProductDto> CreateAsync(CreateProductRequest request, string userId, bool isSystem)
     {
-        Product? parent = request.ParentProductId is { } pid
-            ? await productRepository.GetByIdAsync(pid) ??
-              throw new KeyNotFoundException("Батьківський продукт не знайдено.")
+        Product? parent = request.ParentProductId is int pid
+            ? await productRepository.GetByIdAsync(pid)
+              ?? throw new KeyNotFoundException("Батьківський продукт не знайдено.")
             : null;
 
-        var protein = request.Protein;
-        var fat = request.Fat;
-        var carbs = request.Carbs;
-        var price = request.Price;
+        if (parent is null && (request.Protein is null || request.Fat is null
+            || request.Carbs is null || request.Price is null))
+            throw new InvalidOperationException("Кореневий продукт повинен мати всі значення БЖВ та ціну.");
+
+        var protein = request.Protein ?? parent!.Protein;
+        var fat = request.Fat ?? parent!.Fat;
+        var carbs = request.Carbs ?? parent!.Carbs;
+        var price = request.Price ?? parent!.Price;
+        var glycemicIndex = request.GlycemicIndex ?? parent?.GlycemicIndex;
         var calories = CalculateCalories(carbs, fat, protein);
 
         var categories = await categoryRepository.GetByIdsAsync(request.CategoryIds);
@@ -47,19 +51,28 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         var product = new Product
         {
             Name = request.Name,
-            OwnProtein = protein, OwnFat = fat, OwnCarbs = carbs,
-            OwnCalories = calories, OwnPrice = price,
-            Protein = protein, Fat = fat, Carbs = carbs,
-            Calories = calories, Price = price,
+            OwnProtein = protein,
+            OwnFat = fat,
+            OwnCarbs = carbs,
+            OwnCalories = calories,
+            OwnPrice = price,
+            OwnGlycemicIndex = glycemicIndex,
+            Protein = protein,
+            Fat = fat,
+            Carbs = carbs,
+            Calories = calories,
+            Price = price,
+            GlycemicIndex = glycemicIndex,
             ImageUrl = request.ImageUrl,
             IsSystem = isSystem,
             Categories = categories.ToList(),
-            ParentProductId = request.ParentProductId,
+            ParentProductId = parent?.Id,
             UserId = userId,
-            EdiblePortionFactor = request.EdiblePortionFactor ?? 1
+            EdiblePortionFactor = 1
         };
 
         var created = await productRepository.CreateAsync(product);
+
         created.Path = parent is null ? created.Id.ToString() : $"{parent.Path}.{created.Id}";
         await productRepository.UpdateAsync(created);
 
@@ -69,20 +82,16 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         return created.Adapt<ProductDto>();
     }
 
-    private decimal CalculateCalories(decimal carbs, decimal fats, decimal proteins)
-    {
-        return carbs * 4 + fats * 9 + proteins * 4;
-    }
-
     public async Task<ProductDto> UpdateAsync(int id, UpdateProductRequest request)
     {
         var product = await productRepository.GetByIdWithChildrenAsync(id)
-                      ?? throw new KeyNotFoundException("Продукт не знайдено.");
+            ?? throw new KeyNotFoundException("Продукт не знайдено.");
 
         var isLeaf = product.Children.Count == 0;
         var wantsNutritionChange =
             request.Protein != product.OwnProtein || request.Fat != product.OwnFat ||
-            request.Carbs != product.OwnCarbs || request.Price != product.OwnPrice;
+            request.Carbs != product.OwnCarbs || request.Price != product.OwnPrice ||
+            request.GlycemicIndex != product.OwnGlycemicIndex;
 
         if (!isLeaf && wantsNutritionChange)
             throw new InvalidOperationException(
@@ -92,11 +101,11 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         var isReparenting = request.ParentProductId != product.ParentProductId;
 
         Product? newParent = null;
-        if (isReparenting && request.ParentProductId is { } newParentId)
+        if (isReparenting && request.ParentProductId is int newParentId)
         {
             newParent = await productRepository.GetByIdAsync(newParentId)
-                        ?? throw new KeyNotFoundException("Батьківський продукт не знайдено.");
-            
+                ?? throw new KeyNotFoundException("Батьківський продукт не знайдено.");
+
             if (WouldCreateCycle(product, newParent))
                 throw new InvalidOperationException("Продукт не може бути власним предком.");
         }
@@ -112,6 +121,7 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
             product.OwnCarbs = request.Carbs;
             product.OwnPrice = request.Price;
             product.OwnCalories = CalculateCalories(request.Carbs, request.Fat, request.Protein);
+            product.OwnGlycemicIndex = request.GlycemicIndex;
 
             product.Protein = product.OwnProtein;
             product.Fat = product.OwnFat;
@@ -142,13 +152,10 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         return updated.Adapt<ProductDto>();
     }
 
-    private bool WouldCreateCycle(Product product, Product newParent)
-        => newParent.Path.Split('.').Contains(product.Id.ToString());
-
     public async Task DeleteAsync(int id)
     {
         var product = await productRepository.GetByIdWithChildrenAsync(id)
-                      ?? throw new KeyNotFoundException("Продукт не знайдено.");
+            ?? throw new KeyNotFoundException("Продукт не знайдено.");
 
         if (product.Children.Count > 0)
             throw new InvalidOperationException("Неможливо видалити продукт, який має дочірні продукти.");
@@ -161,10 +168,15 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         await productRepository.DeleteAsync(product);
 
         if (parentId is not null)
-            await RecalculateChainAsync(parentId.Value); // тут спрацює revert-to-Own, якщо це був останній нащадок
+            await RecalculateChainAsync(parentId.Value);
     }
 
-    // Перераховує вузол і йде вгору по ланцюгу предків, доки не дійде до кореня
+    // ── Private ──────────────────────────────────────────────────────────────
+
+    private static bool WouldCreateCycle(Product product, Product newParent)
+        => newParent.Path.Split('.').Contains(product.Id.ToString());
+
+    // Перераховує вузол і йде вгору по ланцюгу предків
     private async Task RecalculateChainAsync(int nodeId)
     {
         int? currentId = nodeId;
@@ -172,7 +184,7 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         while (currentId is not null)
         {
             var node = await productRepository.GetByIdWithChildrenAsync(currentId.Value)
-                       ?? throw new KeyNotFoundException("Продукт не знайдено.");
+                ?? throw new KeyNotFoundException("Продукт не знайдено.");
 
             if (node.Children.Count > 0)
             {
@@ -181,6 +193,12 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
                 node.Carbs = node.Children.Average(c => c.Carbs);
                 node.Calories = node.Children.Average(c => c.Calories);
                 node.Price = node.Children.Average(c => c.Price);
+
+                var giValues = node.Children
+                    .Where(c => c.GlycemicIndex.HasValue)
+                    .Select(c => c.GlycemicIndex!.Value)
+                    .ToList();
+                node.GlycemicIndex = giValues.Count > 0 ? (int)Math.Round(giValues.Average()) : null;
             }
             else
             {
@@ -197,4 +215,7 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
             currentId = node.ParentProductId;
         }
     }
+
+    private static decimal CalculateCalories(decimal carbs, decimal fat, decimal protein)
+        => carbs * 4 + fat * 9 + protein * 4;
 }
