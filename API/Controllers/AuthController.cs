@@ -1,20 +1,14 @@
 using Application.Auth.DTOs;
 using Application.Auth.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
-    private readonly IAuthService authService;
-
-    public AuthController(IAuthService authService)
-    {
-        this.authService = authService;
-    }
-
     [HttpPost("register")]
     public async Task<ActionResult<LoginResponse>> Register(RegisterRequest request)
     {
@@ -41,5 +35,12 @@ public class AuthController : ControllerBase
     {
         await authService.RevokeAsync(refreshToken);
         return NoContent();
+    }
+    
+    [HttpPost("google")]
+    public async Task<ActionResult<LoginResponse>> GoogleLogin(GoogleLoginRequest request)
+    {
+        var response = await authService.LoginWithGoogleAsync(request);
+        return Ok(response);
     }
 }

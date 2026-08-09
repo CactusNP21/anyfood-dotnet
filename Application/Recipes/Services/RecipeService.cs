@@ -1,3 +1,4 @@
+using Application.Images.Interfaces;
 using Application.Products.DTOs;
 using Application.Products.Interfaces;
 using Application.RecipeCategories.Interfaces;
@@ -6,11 +7,13 @@ using Application.Recipes.Interfaces;
 using Application.Recipes.Models;
 using Domain.Entities;
 using Mapster;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Application.Recipes.Services;
 
 public class RecipeService(
     IRecipeRepository repository,
+    IImageStorageService imageStorageService,
     IProductRepository productRepository,
     IRecipeCategoryRepository recipeCategoryRepository) : IRecipeService
 {
@@ -37,7 +40,7 @@ public class RecipeService(
         return dto;
     }
 
-    private NutritionPer100G CalculateNutritionPer100G(
+    private static NutritionPer100G CalculateNutritionPer100G(
         CreateRecipeRequest request, IReadOnlyList<Product> products)
     {
         float calories = 0, protein = 0, fat = 0, carbs = 0, totalPrice = 0;
@@ -61,8 +64,13 @@ public class RecipeService(
             fat * per100, carbs * per100, totalPrice * per100);
     }
 
-    public async Task<RecipeDto> CreateAsync(CreateRecipeRequest request, bool isAdmin)
+    public async Task<RecipeDto> CreateAsync(CreateRecipeRequest request, byte[]? image, bool isAdmin)
     {
+        if (image is null && string.IsNullOrWhiteSpace(request.ImageUrl))
+            throw new InvalidOperationException("Потрібно вказати зображення — файл або URL.");
+
+        request.ImageUrl = image is not null ? string.Empty : request.ImageUrl;
+
         var productIds = request.RecipeProducts.Select(i => i.ProductId).ToList();
         var products = await productRepository.GetByBatchIdAsync(productIds);
 
@@ -70,11 +78,26 @@ public class RecipeService(
         var categories = await recipeCategoryRepository.GetByBatchIdAsync(categoriesIds);
 
         var nutrition = CalculateNutritionPer100G(request, products);
-
         var recipe = CreateRecipeFromRequest(request, nutrition, categories, isAdmin);
 
         var created = await repository.CreateRecipeAsync(recipe);
-        
+
+        // if (image is not null)
+        // {
+            // using var ms = new MemoryStream();
+            // await image.CopyToAsync(ms);
+
+            // imageStorageService.Enqueue(ms.ToArray(), onProcessed: async (finalUrl, sp, ct) =>
+            // {
+                // var recipeRepo = sp.GetRequiredService<IRecipeRepository>();
+                // var r = await recipeRepo.GetByIdAsync(created.Id);
+                // if (r is null) return;
+
+                // r.ImageUrl = finalUrl;
+                // await recipeRepo.UpdateAsync(r);
+            // });
+        // }
+
         return created.Adapt<RecipeDto>();
     }
 

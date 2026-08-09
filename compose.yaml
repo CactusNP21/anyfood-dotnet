@@ -9,6 +9,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d anyfood" ]
+      interval: 3s
+      timeout: 3s
+      retries: 10
 
   anyfood-dotnet:
     image: anyfood-dotnet
@@ -16,7 +21,23 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=anyfood;Username=postgres;Password=postgres;Include Error Detail=true;Application Name=anyfood"
+    volumes:
+      - images:/app/data/images
+  
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - anyfood-dotnet
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - images:/data/images:ro
 
 volumes:
   pgdata:
+  images:

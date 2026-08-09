@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Application.Recipes.DTOs;
 using Application.Recipes.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -26,14 +27,12 @@ public class RecipeController(IRecipeService service) : ControllerBase
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<RecipeDto>> Create(CreateRecipeRequest request)
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<RecipeDto>> Create([FromForm] CreateRecipeRequest request)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        request.UserId = userId;
-        
-        var isAdmin = User.IsInRole("Admin");
-        
-        var recipe = await service.CreateAsync(request, isAdmin);
+        request.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var recipe = await service.CreateAsync(request, User.IsInRole("Admin"));
         return CreatedAtAction(nameof(GetById), new { id = recipe.Id }, recipe);
     }
     
@@ -71,22 +70,4 @@ public class RecipeController(IRecipeService service) : ControllerBase
         await service.SaveRecipe(id, userId);
         return NoContent();
     }
-
-    // // ── Версіонування ────────────────────────────────────────────────────────
-    //
-    // // GET /api/recipes/5/versions — список всіх версій рецепту
-    // [HttpGet("{id:int}/versions")]
-    // public async Task<ActionResult<IReadOnlyList<RecipeVersionDto>>> GetVersions(int id)
-    // {
-    //     var versions = await service.GetVersionsAsync(id);
-    //     return Ok(versions);
-    // }
-    //
-    // // GET /api/recipes/5/versions/12 — конкретна версія з інгредієнтами
-    // [HttpGet("{id:int}/versions/{versionId:int}")]
-    // public async Task<ActionResult<RecipeVersionDto>> GetVersion(int id, int versionId)
-    // {
-    //     var version = await service.GetVersionByIdAsync(id, versionId);
-    //     return Ok(version);
-    // }
 }

@@ -13,7 +13,9 @@ public class CreateRecipeRequest
 
     public string Description { get; set; } = String.Empty;
     public int Duration { get; set; }
-    
+
+    public RecipeStepDto[] Steps { get; set; } = [];
+
     public string? UserId { get; set; }
 }
 
@@ -21,4 +23,11 @@ public class RecipeIngredientDto
 {
     public int ProductId { get; set; }
     public float Weight { get; set; }
+}
+
+public class RecipeStepDto
+{
+    public int Order { get; set; }
+    public string Description { get; set; }
+    public IFormFile? Image { get; set; }
 }

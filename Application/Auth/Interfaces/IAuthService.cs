@@ -5,6 +5,7 @@ namespace Application.Auth.Interfaces;
 
 public interface IAuthService
 {
+    Task<LoginResponse> LoginWithGoogleAsync(GoogleLoginRequest request);
     Task<LoginResponse> RegisterAsync(RegisterRequest request);
     Task<LoginResponse> LoginAsync(LoginRequest request);
     Task<LoginResponse> RefreshAsync(string refreshToken);

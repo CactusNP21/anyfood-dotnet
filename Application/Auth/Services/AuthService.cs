@@ -4,21 +4,48 @@ using System.Text;
 using Application.Auth.DTOs;
 using Application.Auth.Interfaces;
 using Domain.Entities;
+using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Auth.Services;
 
-public class AuthService : IAuthService
+public class AuthService(IUserRepository userRepository, IConfiguration configuration)
+    : IAuthService
 {
-    private readonly IUserRepository userRepository;
-    private readonly IConfiguration configuration;
-
-    public AuthService(IUserRepository userRepository, IConfiguration configuration)
+    public async Task<LoginResponse> LoginWithGoogleAsync(GoogleLoginRequest request)
     {
-        this.userRepository = userRepository;
-        this.configuration = configuration;
+        GoogleJsonWebSignature.Payload payload;
+        try
+        {
+            payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken,
+                new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = [configuration["Google:ClientId"]!]
+                });
+        }
+        catch (InvalidJwtException)
+        {
+            throw new UnauthorizedAccessException("Недійсний Google токен.");
+        }
+
+        var user = await userRepository.FindByEmailAsync(payload.Email);
+
+        if (user is null)
+        {
+            user = new User
+            {
+                Name = payload.Name ?? payload.Email,
+                UserName = payload.Email,
+                Email = payload.Email,
+                EmailConfirmed = payload.EmailVerified,
+                AvatarUrl = payload.Picture,
+            };
+            await userRepository.CreateExternalAsync(user);
+        }
+
+        return await GenerateLoginResponseAsync(user);
     }
 
     public async Task<LoginResponse> RegisterAsync(RegisterRequest request)

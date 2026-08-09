@@ -4,13 +4,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Identity;
 
-public class UserRepository : IUserRepository
+public class UserRepository(UserManager<User> userManager) : IUserRepository
 {
-    private readonly UserManager<User> userManager;
-
-    public UserRepository(UserManager<User> userManager)
+    public async Task CreateExternalAsync(User user)
     {
-        this.userManager = userManager;
+        // CreateAsync без пароля — юзер логінитись паролем не зможе, лише через OAuth
+        var result = await userManager.CreateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException(errors);
+        }
     }
     
     public Task<IList<string>> GetRolesAsync(User user)

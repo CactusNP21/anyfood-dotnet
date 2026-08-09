@@ -9,6 +9,8 @@ using Application.DayPlans.Interfaces;
 using Application.DayPlans.Services;
 using Application.Fridge.Interfaces;
 using Application.Fridge.Services;
+using Application.Images.Interfaces;
+using Application.Images.Services;
 using Application.Mapping;
 using Application.Products.Interfaces;
 using Application.Products.Services;
@@ -37,6 +39,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SixLabors.ImageSharp.Processing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -140,6 +143,11 @@ builder.Services.AddScoped<IShoppingListRepository, ShoppingListRepository>();
 
 builder.Services.AddScoped<IFridgeRepository, FridgeRepository>();
 builder.Services.AddScoped<IFridgeService, FridgeService>();
+
+builder.Services.AddSingleton<BackgroundImageQueue>();
+builder.Services.AddScoped<IImageStorageService, ImageProcessingService>();
+builder.Services.AddHostedService<ImageProcessingWorker>();
+
 
 // ── Build ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();

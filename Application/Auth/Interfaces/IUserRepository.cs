@@ -4,6 +4,7 @@ namespace Application.Auth.Interfaces;
 
 public interface IUserRepository
 {
+    Task CreateExternalAsync(User user);
     Task<User?> FindByIdAsync(string id);
     Task<IList<string>> GetRolesAsync(User user);
     Task<User?> FindByUsernameAsync(string username);
