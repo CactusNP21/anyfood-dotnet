@@ -17,6 +17,7 @@ public class CreateProductRequest
     public decimal? Carbs { get; set; }
     public decimal? Price { get; set; }
     public int? GlycemicIndex { get; set; }
+    public decimal? Salt { get; set; }
 
     [Required] public int[] CategoryIds { get; set; } = [];
     [Required] public string ImageUrl { get; set; } = string.Empty;

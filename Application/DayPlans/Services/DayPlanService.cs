@@ -104,7 +104,7 @@ public class DayPlanService(
             // якщо обидва null - запис некоректний (не мало б статись через валідацію),
             // просто пропускаємо
         }
-
+        
         return new DayPlanDto
         {
             Id = dayPlan.Id,
@@ -115,9 +115,12 @@ public class DayPlanService(
                 Id = e.Id,
                 Weight = e.Weight,
                 RecipeId = e.RecipeId,
-                ProductVersionId = e.ProductId,
+                ProductId = e.ProductId,
                 Time = e.Time,
+                ImageUrl = e.Recipe != null ? e.Recipe.ImageUrl : e.Product?.ImageUrl,
                 Name = e.ProductId is not null ? e.Product!.Name : e.Recipe!.Name,
+                Product = e.Product,
+                Recipe = e.Recipe,
             }).ToList(),
             TotalCalories = totalCalories,
             TotalProtein = totalProtein,

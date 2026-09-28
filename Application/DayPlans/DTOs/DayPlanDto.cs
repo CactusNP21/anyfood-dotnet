@@ -1,3 +1,5 @@
+using Domain.Entities;
+
 namespace Application.DayPlans.DTOs;
 
 public class DayPlanDto
@@ -20,6 +22,9 @@ public class DayPlanEntryResultDto
     public float Weight { get; set; }
     public required int  Time { get; set; }
     public int? RecipeId { get; set; }
-    public int? ProductVersionId { get; set; }
+    public int? ProductId { get; set; }
     public required string Name { get; set; }
+    public required string? ImageUrl { get; set; }
+    public required Recipe? Recipe { get; set; }
+    public required Product? Product { get; set; }
 }

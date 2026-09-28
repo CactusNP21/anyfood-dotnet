@@ -12,20 +12,24 @@ public class ImageProcessingService(IConfiguration configuration, BackgroundImag
     private static readonly int[] Widths = [200, 500, 1200]; // thumbnail, card, full
     private readonly string _root = configuration["Images:StoragePath"] ?? "/app/data/images";
 
-    public async Task<ImageUploadResult> SaveAsync(Stream input, CancellationToken ct = default)
+    public Task<ImageUploadResult> SaveAsync(Stream input, CancellationToken ct = default)
+        => SaveAsync(input, Widths, ct);
+
+    public async Task<ImageUploadResult> SaveAsync(Stream input, int[] widths, CancellationToken ct = default)
     {
         using var ms = new MemoryStream();
         await input.CopyToAsync(ms, ct);
 
         var hash = Convert.ToHexString(SHA256.HashData(ms.ToArray()))[..16].ToLowerInvariant();
         var dir = Path.Combine(_root, hash);
-
-        // Той самий контент → та сама папка. Нема сенсу перегенеровувати.
-        if (Directory.Exists(dir))
-            return new ImageUploadResult(hash, BuildUrls(hash));
-
         Directory.CreateDirectory(dir);
 
+        var missingWidths = widths
+            .Where(w => !File.Exists(Path.Combine(dir, $"{w}.webp")))
+            .ToArray();
+
+        if (missingWidths.Length <= 0) return new ImageUploadResult(hash, BuildUrls(hash, widths));
+        
         ms.Position = 0;
         using var image = await Image.LoadAsync(ms, ct);
 
@@ -36,20 +40,21 @@ public class ImageProcessingService(IConfiguration configuration, BackgroundImag
             Method = WebpEncodingMethod.BestQuality,
         };
 
-        foreach (var width in Widths)
+        foreach (var width in missingWidths)
         {
             using var clone = image.Clone(ctx =>
             {
-                if (image.Width > width) // не збільшуємо менші зображення
+                if (image.Width > width)
                     ctx.Resize(new ResizeOptions { Size = new Size(width, 0), Mode = ResizeMode.Max });
             });
-
             await clone.SaveAsync(Path.Combine(dir, $"{width}.webp"), encoder, ct);
         }
 
-        return new ImageUploadResult(hash, BuildUrls(hash));
+        return new ImageUploadResult(hash, BuildUrls(hash, widths));
     }
 
+    private static Dictionary<int, string> BuildUrls(string hash, int[] widths)
+        => widths.ToDictionary(w => w, w => $"/images/{hash}/{w}.webp");
     public Task DeleteAsync(string hash, CancellationToken ct = default)
     {
         var dir = Path.Combine(_root, hash);

@@ -44,6 +44,7 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         var carbs = request.Carbs ?? parent!.Carbs;
         var price = request.Price ?? parent!.Price;
         var glycemicIndex = request.GlycemicIndex ?? parent?.GlycemicIndex;
+        var salt = request.Salt ?? parent!.Salt;
         var calories = CalculateCalories(carbs, fat, protein);
 
         var categories = await categoryRepository.GetByIdsAsync(request.CategoryIds);
@@ -63,6 +64,7 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
             Calories = calories,
             Price = price,
             GlycemicIndex = glycemicIndex,
+            Salt = salt,
             ImageUrl = request.ImageUrl,
             IsSystem = isSystem,
             Categories = categories.ToList(),

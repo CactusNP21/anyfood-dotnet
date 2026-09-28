@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using API.MultipartFormModels;
 using Application.Recipes.DTOs;
 using Application.Recipes.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -28,12 +29,44 @@ public class RecipeController(IRecipeService service) : ControllerBase
     [HttpPost]
     [Authorize]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<RecipeDto>> Create([FromForm] CreateRecipeRequest request)
+    public async Task<ActionResult<RecipeDto>> Create([FromForm] CreateRecipeFormRequest form)
     {
-        request.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        byte[] mainImage = [];
+        if (form.Image is not null)
+        {
+            using var ms = new MemoryStream();
+            await form.Image.CopyToAsync(ms);
+            mainImage = ms.ToArray();
+        }
+
+        var steps = new List<CreateRecipeStepDto>();
+        foreach (var s in form.Steps)
+        {
+            byte[]? stepImage = null;
+            if (s.Image is not null)
+            {
+                using var ms = new MemoryStream();
+                await s.Image.CopyToAsync(ms);
+                stepImage = ms.ToArray();
+            }
+            steps.Add(new CreateRecipeStepDto { Order = s.Order, Description = s.Description, Image = stepImage });
+        }
+
+        var request = new CreateRecipeRequest
+        {
+            Name = form.Name,
+            Image = mainImage,
+            RecipeProducts = form.RecipeProducts,
+            RecipeCategories = form.RecipeCategories,
+            Portions = form.Portions,
+            Description = form.Description,
+            Duration = form.Duration,
+            Steps = steps.ToArray(),
+            UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+        };
 
         var recipe = await service.CreateAsync(request, User.IsInRole("Admin"));
-        return CreatedAtAction(nameof(GetById), new { id = recipe.Id }, recipe);
+        return CreatedAtAction(nameof(GetById), new { id = recipe.Id }, recipe); 
     }
     
     // [HttpGet("filter")]

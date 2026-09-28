@@ -9,6 +9,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Domain.Entities.RecipeCategory> RecipeCategories => Set<Domain.Entities.RecipeCategory>();
     public DbSet<Recipe> Recipes => Set<Recipe>();
+    public DbSet<RecipeStep> RecipeSteps => Set<RecipeStep>();
+
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<ProductPriceHistory> ProductPriceHistories => Set<ProductPriceHistory>();
     public DbSet<RecipeProduct> RecipeProducts => Set<RecipeProduct>();
@@ -20,6 +22,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ShoppingListItem> ShoppingListItems => Set<ShoppingListItem>();
     public DbSet<Domain.Entities.Fridge> Fridges => Set<Domain.Entities.Fridge>();
     public DbSet<FridgeItem> FridgeItems => Set<FridgeItem>();
+    
 
 
     protected override void OnModelCreating(ModelBuilder builder)

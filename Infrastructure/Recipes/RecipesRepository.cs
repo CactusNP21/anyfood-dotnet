@@ -15,8 +15,10 @@ public class RecipesRepository(AppDbContext ctx): IRecipeRepository
     public async Task<Recipe?> GetByIdAsync(int id)
     {
         return await ctx.Recipes
-            .Include(r => r.RecipeProducts)
-            .ThenInclude(rp => rp.Product)
+            .Include(r => r.RecipeProducts).ThenInclude(rp => rp.Product)
+            .Include(r => r.RecipeCategories)
+            .Include(r => r.Steps.OrderBy(s => s.Order))
+            .Include(r => r.User)
             .FirstOrDefaultAsync(rc => rc.Id == id);
     }
 

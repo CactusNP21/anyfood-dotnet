@@ -3,6 +3,7 @@ namespace Application.Images.Interfaces;
 public interface IImageStorageService
 {
     Task<ImageUploadResult> SaveAsync(Stream input, CancellationToken ct = default);
+    Task<ImageUploadResult> SaveAsync(Stream input, int[] widths, CancellationToken ct = default); // new
     Task DeleteAsync(string hash, CancellationToken ct = default);
 
     string Enqueue(

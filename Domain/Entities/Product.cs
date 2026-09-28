@@ -13,6 +13,7 @@ public class Product
     public decimal OwnFat { get; set; }
     public decimal OwnCarbs { get; set; }
     public decimal OwnPrice { get; set; }
+    public decimal OwnSalt { get; set; } = 0;
     public int? OwnGlycemicIndex { get; set; }
 
     // ── Ефективні значення — те, що читають рецепти/списки покупок ──
@@ -21,6 +22,7 @@ public class Product
     public required decimal Protein { get; set; }
     public required decimal Fat { get; set; }
     public required decimal Carbs { get; set; }
+    public required decimal Salt { get; set; }
     public int? GlycemicIndex { get; set; }
     public required decimal Price { get; set; }
     public required float EdiblePortionFactor { get; set; } = 1;

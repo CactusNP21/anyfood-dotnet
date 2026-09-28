@@ -1,4 +1,3 @@
-using Application.Products.DTOs;
 using Application.RecipeCategories.DTOs;
 
 namespace Application.Recipes.DTOs;
@@ -6,15 +5,15 @@ namespace Application.Recipes.DTOs;
 public class CreateRecipeRequest
 {
     public required string Name { get; set; }
-    public required string ImageUrl { set; get; }
+    public required byte[] Image { set; get; }
     public required ICollection<RecipeIngredientDto> RecipeProducts { get; set; }
     public ICollection<RecipeCategoryDto> RecipeCategories { get; set; }
-    public required int Portions { get; set; }
+    public required int Portions { get; set; } = 1;
 
     public string Description { get; set; } = String.Empty;
     public int Duration { get; set; }
 
-    public RecipeStepDto[] Steps { get; set; } = [];
+    public CreateRecipeStepDto[] Steps { get; set; } = [];
 
     public string? UserId { get; set; }
 }
@@ -25,9 +24,10 @@ public class RecipeIngredientDto
     public float Weight { get; set; }
 }
 
-public class RecipeStepDto
+public class CreateRecipeStepDto
 {
     public int Order { get; set; }
     public string Description { get; set; }
-    public IFormFile? Image { get; set; }
+    public int Timer { get; set; }
+    public byte[]? Image { get; set; }
 }

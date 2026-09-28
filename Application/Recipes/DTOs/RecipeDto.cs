@@ -12,10 +12,6 @@ public class RecipeDto
     public required string ImageUrl { set; get; }
     public required ICollection<ProductDto> Products { get; set; }
     public required ICollection<RecipeCategoryDto> RecipeCategories { get; set; }
-    public required int Portions { get; set; }
-
-    public required int LatestVersionId { get; set; }
-
     
     public string Description { get; set; } = String.Empty;
     public int Duration { get; set; }
@@ -23,7 +19,16 @@ public class RecipeDto
     public float Protein { get; set; }
     public float Fat { get; set; }
     public float Carbs { get; set; }
+    public ICollection<RecipeStepDto> Steps { get; set; } = [];
 
     public string? UserId { get; set; }
     public UserDto? User { get; set; }
+}
+
+public class RecipeStepDto
+{
+    public int Order { get; set; }
+    public required string Description { get; set; }
+    public int Timer { get; set; }
+    public string? ImageUrl { get; set; }
 }

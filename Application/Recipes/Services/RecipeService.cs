@@ -1,13 +1,16 @@
+using System.Net.Mime;
+using Application.Auth.DTOs;
 using Application.Images.Interfaces;
 using Application.Products.DTOs;
 using Application.Products.Interfaces;
+using Application.RecipeCategories.DTOs;
 using Application.RecipeCategories.Interfaces;
 using Application.Recipes.DTOs;
 using Application.Recipes.Interfaces;
 using Application.Recipes.Models;
 using Domain.Entities;
 using Mapster;
-using Microsoft.Extensions.DependencyInjection;
+using SixLabors.ImageSharp;
 
 namespace Application.Recipes.Services;
 
@@ -17,6 +20,142 @@ public class RecipeService(
     IProductRepository productRepository,
     IRecipeCategoryRepository recipeCategoryRepository) : IRecipeService
 {
+    private static readonly int[] MainImageWidths = [500, 1200];
+    private static readonly int[] StepImageWidths = [500];
+
+    public async Task<RecipeDto> CreateAsync(CreateRecipeRequest request, bool isAdmin)
+    {
+        var productIds = request.RecipeProducts.Select(i => i.ProductId).ToList();
+        var products = await productRepository.GetByBatchIdAsync(productIds);
+
+        ValidateRecipeCanBeCreated(request, products);
+        ValidateImages(request);
+
+        var mainImageUrl = await ProcessMainImageAsync(request);
+        var steps = await ProcessStepsAsync(request); // see note below
+        
+        var categoriesIds = request.RecipeCategories.Select(i => i.Id).ToList();
+        var categories = await recipeCategoryRepository.GetByBatchIdAsync(categoriesIds);
+        
+        var nutrition = CalculateNutritionPer100G(request, products);
+        var recipe = CreateRecipeFromRequest(request, nutrition, categories, isAdmin, mainImageUrl, steps);
+
+        var created = await repository.CreateRecipeAsync(recipe);
+
+        return created.Adapt<RecipeDto>();
+    }
+
+    private Recipe CreateRecipeFromRequest(
+        CreateRecipeRequest request,
+        NutritionPer100G nutrition,
+        IReadOnlyList<RecipeCategory> categories,
+        bool isSystem,
+        string imageUrl,
+        List<RecipeStep> steps)
+    {
+        return new Recipe
+        {
+            Id = 0,
+            Name = request.Name,
+            Price = nutrition.Price,
+            ImageUrl = imageUrl,
+            RecipeProducts = request.RecipeProducts.Select(rp => new RecipeProduct
+            {
+                ProductId = rp.ProductId,
+                Weight = rp.Weight,
+            }).ToList(),
+            RecipeCategories = categories.ToList(),
+            Portions = request.Portions,
+            Description = request.Description,
+            Duration = request.Duration,
+            Calories = nutrition.Calories,
+            Protein = nutrition.Protein,
+            Fat = nutrition.Fat,
+            Carbs = nutrition.Carbs,
+            UserId = request.UserId,
+            IsSystem = isSystem,
+            Steps = steps,
+        };
+    }
+
+    private async Task<string> ProcessMainImageAsync(CreateRecipeRequest request)
+    {
+        await using var ms = new MemoryStream(request.Image);
+        var result = await imageStorageService.SaveAsync(ms, MainImageWidths);
+        return result.VariantUrls[MainImageWidths.Max()]; // 1200px як основний URL
+    }
+
+    private async Task<List<RecipeStep>> ProcessStepsAsync(CreateRecipeRequest request)
+    {
+        var steps = new List<RecipeStep>();
+
+        foreach (var step in request.Steps)
+        {
+            string? imageUrl = null;
+
+            if (step.Image is not null)
+            {
+                await using var ms = new MemoryStream(step.Image);
+                var result = await imageStorageService.SaveAsync(ms, StepImageWidths);
+                imageUrl = result.VariantUrls[StepImageWidths.Max()];
+            }
+
+            steps.Add(new RecipeStep
+            {
+                Order = step.Order,
+                Description = step.Description,
+                Timer = step.Timer,
+                ImageUrl = imageUrl,
+            });
+        }
+
+        return steps;
+    }
+
+    private static void ValidateImages(CreateRecipeRequest request)
+    {
+        if (request.Image is null)
+            throw new InvalidOperationException("Потрібно вказати зображення рецепту — файл або URL.");
+
+        EnsureValidImage(request.Image, "Головне зображення рецепту пошкоджене або має непідтримуваний формат.");
+
+        foreach (var step in request.Steps.Where(s => s.Image is not null))
+            EnsureValidImage(step.Image!, $"Зображення кроку {step.Order} пошкоджене або має непідтримуваний формат.");
+    }
+
+    private static void EnsureValidImage(byte[] bytes, string errorMessage)
+    {
+        try
+        {
+            Image.Identify(bytes);
+        }
+        catch (Exception ex) when (
+            ex is NotSupportedException
+                or InvalidImageContentException
+                or UnknownImageFormatException)
+        {
+            throw new InvalidOperationException(errorMessage, ex);
+        }
+    }
+
+
+    private static void ValidateRecipeCanBeCreated(CreateRecipeRequest request, IReadOnlyList<Product> products)
+    {
+        if (request.RecipeProducts.Count == 0)
+            throw new InvalidOperationException("Рецепт повинен містити хоча б один інгредієнт.");
+        
+        if (request.RecipeProducts.Any(rp => rp.Weight <= 0))
+            throw new InvalidOperationException("Вага кожного інгредієнта повинна бути більше 0.");
+
+        var missingIds = request.RecipeProducts
+            .Select(rp => rp.ProductId)
+            .Except(products.Select(p => p.Id))
+            .ToList();
+
+        if (missingIds.Count > 0)
+            throw new KeyNotFoundException($"Продукти не знайдено: {string.Join(", ", missingIds)}.");
+    }
+
     public async Task<IReadOnlyList<RecipeDto>> GetAllAsync()
     {
         var recipes = await repository.GetAllAsync();
@@ -38,6 +177,51 @@ public class RecipeService(
             .ToList();
 
         return dto;
+    }
+
+    private static RecipeDto ConvertRecipeToDto(Recipe recipe)
+    {
+        return new RecipeDto
+        {
+            Id = recipe.Id,
+            Name = recipe.Name,
+            Price = recipe.Price,
+            ImageUrl = recipe.ImageUrl,
+            Products = recipe.RecipeProducts.Select(rp =>
+            {
+                var dto = rp.Product.Adapt<ProductDto>();
+                dto.Weight = rp.Weight;
+                return dto;
+            }).ToList(),
+            RecipeCategories = recipe.RecipeCategories
+                .Select(rc => rc.Adapt<RecipeCategoryDto>())
+                .ToList(),
+            Description = recipe.Description,
+            Duration = recipe.Duration,
+            Calories = recipe.Calories,
+            Protein = recipe.Protein,
+            Fat = recipe.Fat,
+            Carbs = recipe.Carbs,
+            UserId = recipe.UserId,
+            User = recipe.User is null ? null : new UserDto
+            {
+                Id = recipe.User.Id,
+                Name = recipe.User.Name,
+                Username = recipe.User.UserName!,
+                Email = recipe.User.Email!,
+                AvatarUrl = recipe.User.AvatarUrl,
+            },
+            Steps = recipe.Steps
+                .OrderBy(s => s.Order)
+                .Select(s => new RecipeStepDto
+                {
+                    Order = s.Order,
+                    Description = s.Description,
+                    Timer = s.Timer,
+                    ImageUrl = s.ImageUrl,
+                })
+                .ToList(),
+        };
     }
 
     private static NutritionPer100G CalculateNutritionPer100G(
@@ -62,76 +246,6 @@ public class RecipeService(
         return new NutritionPer100G(
             calories * per100, protein * per100,
             fat * per100, carbs * per100, totalPrice * per100);
-    }
-
-    public async Task<RecipeDto> CreateAsync(CreateRecipeRequest request, byte[]? image, bool isAdmin)
-    {
-        if (image is null && string.IsNullOrWhiteSpace(request.ImageUrl))
-            throw new InvalidOperationException("Потрібно вказати зображення — файл або URL.");
-
-        request.ImageUrl = image is not null ? string.Empty : request.ImageUrl;
-
-        var productIds = request.RecipeProducts.Select(i => i.ProductId).ToList();
-        var products = await productRepository.GetByBatchIdAsync(productIds);
-
-        var categoriesIds = request.RecipeCategories.Select(i => i.Id).ToList();
-        var categories = await recipeCategoryRepository.GetByBatchIdAsync(categoriesIds);
-
-        var nutrition = CalculateNutritionPer100G(request, products);
-        var recipe = CreateRecipeFromRequest(request, nutrition, categories, isAdmin);
-
-        var created = await repository.CreateRecipeAsync(recipe);
-
-        // if (image is not null)
-        // {
-            // using var ms = new MemoryStream();
-            // await image.CopyToAsync(ms);
-
-            // imageStorageService.Enqueue(ms.ToArray(), onProcessed: async (finalUrl, sp, ct) =>
-            // {
-                // var recipeRepo = sp.GetRequiredService<IRecipeRepository>();
-                // var r = await recipeRepo.GetByIdAsync(created.Id);
-                // if (r is null) return;
-
-                // r.ImageUrl = finalUrl;
-                // await recipeRepo.UpdateAsync(r);
-            // });
-        // }
-
-        return created.Adapt<RecipeDto>();
-    }
-
-    private Recipe CreateRecipeFromRequest(
-        CreateRecipeRequest request,
-        NutritionPer100G nutrition,
-        IReadOnlyList<RecipeCategory> categories,
-        bool isSystem
-        )
-    {
-        return new Recipe
-        {
-            Id = 0,
-            Name = request.Name,
-            Price = nutrition.Price,
-            ImageUrl = request.ImageUrl,
-            RecipeProducts = request.RecipeProducts.Select(rp => new RecipeProduct
-                    {
-                        ProductId = rp.ProductId,
-                        Weight = rp.Weight,
-                    }
-                )
-                .ToList(),
-            RecipeCategories = categories.ToList(),
-            Portions = request.Portions,
-            Description = request.Description,
-            Duration = request.Duration,
-            Calories = nutrition.Calories,
-            Protein = nutrition.Protein,
-            Fat = nutrition.Fat,
-            Carbs = nutrition.Carbs,
-            UserId = request.UserId,
-            IsSystem = isSystem
-        };
     }
 
     public async Task<RecipeDto> UpdateAsync(int id, UpdateRecipeRequest request)
