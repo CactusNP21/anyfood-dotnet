@@ -76,4 +76,7 @@ public class ProductRepository(AppDbContext context) : IProductRepository
 
     public async Task<bool> HasRecipesAsync(int id)
         => await context.RecipeProducts.AnyAsync(rp => rp.ProductId == id);
+
+    public async Task<bool> HasDiaryEntriesAsync(int id)
+        => await context.FoodDiaryEntries.AnyAsync(e => e.ProductId == id);
 }

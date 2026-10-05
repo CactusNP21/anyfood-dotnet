@@ -44,7 +44,7 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         var carbs = request.Carbs ?? parent!.Carbs;
         var price = request.Price ?? parent!.Price;
         var glycemicIndex = request.GlycemicIndex ?? parent?.GlycemicIndex;
-        var salt = request.Salt ?? parent!.Salt;
+        var salt = request.Salt ?? parent?.Salt ?? 0;
         var calories = CalculateCalories(carbs, fat, protein);
 
         var categories = await categoryRepository.GetByIdsAsync(request.CategoryIds);
@@ -165,6 +165,9 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         var hasRecipes = await productRepository.HasRecipesAsync(id);
         if (hasRecipes)
             throw new InvalidOperationException("Неможливо видалити продукт, який використовується в рецептах.");
+
+        if (await productRepository.HasDiaryEntriesAsync(id))
+            throw new InvalidOperationException("Неможливо видалити продукт, який є в щоденнику харчування.");
 
         var parentId = product.ParentProductId;
         await productRepository.DeleteAsync(product);

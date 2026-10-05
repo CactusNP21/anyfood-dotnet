@@ -16,4 +16,5 @@ public interface IProductRepository
     Task DeleteAsync(Product product);
 
     Task<bool> HasRecipesAsync(int id);
+    Task<bool> HasDiaryEntriesAsync(int id);
 }

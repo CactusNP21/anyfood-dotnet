@@ -22,6 +22,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<ShoppingListItem> ShoppingListItems => Set<ShoppingListItem>();
     public DbSet<Domain.Entities.Fridge> Fridges => Set<Domain.Entities.Fridge>();
     public DbSet<FridgeItem> FridgeItems => Set<FridgeItem>();
+    public DbSet<FoodDiaryDay> FoodDiaryDays => Set<FoodDiaryDay>();
+    public DbSet<FoodDiaryEntry> FoodDiaryEntries => Set<FoodDiaryEntry>();
+    public DbSet<CalorieGoal> CalorieGoals => Set<CalorieGoal>();
     
 
 

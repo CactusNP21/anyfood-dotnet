@@ -7,6 +7,8 @@ using Application.Categories.Interfaces;
 using Application.Categories.Services;
 using Application.DayPlans.Interfaces;
 using Application.DayPlans.Services;
+using Application.FoodDiary.Interfaces;
+using Application.FoodDiary.Services;
 using Application.Fridge.Interfaces;
 using Application.Fridge.Services;
 using Application.Images.Interfaces;
@@ -27,6 +29,7 @@ using Domain.Entities;
 using Infrastructure;
 using Infrastructure.Categories;
 using Infrastructure.DayPlans;
+using Infrastructure.FoodDiary;
 using Infrastructure.Fridge;
 using Infrastructure.Identity;
 using Infrastructure.Persistence;
@@ -143,6 +146,10 @@ builder.Services.AddScoped<IShoppingListRepository, ShoppingListRepository>();
 
 builder.Services.AddScoped<IFridgeRepository, FridgeRepository>();
 builder.Services.AddScoped<IFridgeService, FridgeService>();
+
+// ── FoodDiary ─────────────────────────────────────────────────────────────────
+builder.Services.AddScoped<IFoodDiaryRepository, FoodDiaryRepository>();
+builder.Services.AddScoped<IFoodDiaryService, FoodDiaryService>();
 
 builder.Services.AddSingleton<BackgroundImageQueue>();
 builder.Services.AddScoped<IImageStorageService, ImageProcessingService>();
