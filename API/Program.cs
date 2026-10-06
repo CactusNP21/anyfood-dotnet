@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using API.Middleware;
 using Application.Auth.Interfaces;
 using Application.Auth.Services;
@@ -50,7 +52,11 @@ var builder = WebApplication.CreateBuilder(args);
 MappingConfig.Configure();
 
 // ── Controllers ────────────────────────────────────────────────────────────────
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        // Enum-и як camelCase рядки ("veryActive"); числа не приймаються
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false)));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -115,6 +121,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddSingleton(TimeProvider.System);
 
 // ── Categories ─────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();

@@ -7,4 +7,5 @@ public class UserProfileResponse
     public required string Username { get; set; } = string.Empty;
     public required string Email { get; set; } = string.Empty;
     public string? AvatarUrl { get; set; }
+    public required BodyParamsDto BodyParams { get; set; }
 }

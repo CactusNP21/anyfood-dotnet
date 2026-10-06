@@ -4,12 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-AnyFood is an ASP.NET Core (.NET 10) REST API backing an Angular frontend. It handles products with nutrition and price data, recipes, day plans, shopping lists and a per-user fridge. The data store is PostgreSQL via EF Core (Npgsql). There is no test project.
+AnyFood is an ASP.NET Core (.NET 10) REST API backing an Angular frontend. It handles products with nutrition and price data, recipes, day plans, shopping lists and a per-user fridge. The data store is PostgreSQL via EF Core (Npgsql). Unit tests (xUnit) live in `Application.Tests`, which tests Application services against hand-written fakes.
 
 ## Commands
 
 ```bash
 dotnet build AnyFood.sln                       # build all projects
+dotnet test Application.Tests                  # run unit tests
+dotnet test Application.Tests --filter "FullyQualifiedName~UserServiceBodyParamsTests"  # one class (or a method name)
 dotnet run --project API                       # run API (needs Postgres on localhost:5432, db "anyfood", postgres/postgres)
 docker compose up -d db                        # start only Postgres for local dev
 docker compose up --build                      # full stack: db + API + nginx on http://localhost:8080
@@ -33,6 +35,8 @@ The code follows a Clean Architecture layout, with project references running `A
 ### Conventions that span layers
 
 - **Error handling through exceptions**: services throw `KeyNotFoundException` (→404), `InvalidOperationException` (→400) and `UnauthorizedAccessException` (→401). The middleware maps them to `{ "message": ... }`, and any other exception becomes a 500. Controllers return `Ok(...)` directly and do not check for null. User-facing messages are written in Ukrainian, and so are many code comments.
+- **JSON enums** are serialized and accepted as camelCase strings only (`JsonStringEnumConverter` with `allowIntegerValues: false`, configured globally in `Program.cs`). Store enum columns as strings (`HasConversion<string>()`).
+- **Time-dependent logic** takes the registered `TimeProvider` singleton so tests can pin "now" (see `UserService`).
 - **Mapping**: Mapster `.Adapt<T>()`. Custom maps live in `Application/Mapping/MappingConfig.cs`, which is called once at startup. Add `Ignore` rules there when a mapping would overwrite navigation or computed properties.
 - **Generic CRUD**: `API/Base/BaseController` together with `IBaseService`/`IBaseRepository` in `Application/Base` provides the standard CRUD endpoints for simple entities such as categories.
 - **Auth**: JWT bearer tokens (`Jwt` config section) plus Google ID-token login (`AuthService.LoginWithGoogleAsync`). Controllers read the user from `ClaimTypes.NameIdentifier` and check the `"Admin"` role through `User.IsInRole("Admin")`.
