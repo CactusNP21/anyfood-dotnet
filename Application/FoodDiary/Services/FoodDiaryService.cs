@@ -47,6 +47,7 @@ public class FoodDiaryService(IFoodDiaryRepository repository) : IFoodDiaryServi
                 TotalProtein = dto.TotalProtein,
                 TotalFat = dto.TotalFat,
                 TotalCarbs = dto.TotalCarbs,
+                TotalSalt = dto.TotalSalt,
             });
         }
 
@@ -163,6 +164,7 @@ public class FoodDiaryService(IFoodDiaryRepository repository) : IFoodDiaryServi
             TotalProtein = entries.Sum(e => e.Protein),
             TotalFat = entries.Sum(e => e.Fat),
             TotalCarbs = entries.Sum(e => e.Carbs),
+            TotalSalt = entries.Sum(e => e.Salt),
             Entries = entries,
         };
     }
@@ -187,6 +189,7 @@ public class FoodDiaryService(IFoodDiaryRepository repository) : IFoodDiaryServi
             dto.Protein  = (float)entry.Product.Protein  * ratio;
             dto.Fat      = (float)entry.Product.Fat      * ratio;
             dto.Carbs    = (float)entry.Product.Carbs    * ratio;
+            dto.Salt     = (float)entry.Product.Salt     * ratio;
         }
         else if (entry.Recipe is not null)
         {
@@ -194,6 +197,7 @@ public class FoodDiaryService(IFoodDiaryRepository repository) : IFoodDiaryServi
             dto.Protein  = entry.Recipe.Protein  * ratio;
             dto.Fat      = entry.Recipe.Fat      * ratio;
             dto.Carbs    = entry.Recipe.Carbs    * ratio;
+            dto.Salt     = entry.Recipe.Salt     * ratio;
         }
 
         return dto;

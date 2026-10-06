@@ -16,6 +16,7 @@ public class Recipe
     public float Protein { get; set; }
     public float Fat { get; set; }
     public float Carbs { get; set; }
+    public float Salt { get; set; }
     
     public ICollection<RecipeStep> Steps { get; set; } = [];
 

@@ -23,6 +23,7 @@ public static class MappingConfig
             .Ignore(dest => dest.Protein)
             .Ignore(dest => dest.Fat)
             .Ignore(dest => dest.Carbs)
+            .Ignore(dest => dest.Salt)
             .Ignore(dest => dest.Price)
             .Map(dest => dest.RecipeProducts, src => src.RecipeProducts.Select(rp => new RecipeProduct
             {
@@ -36,6 +37,7 @@ public static class MappingConfig
             .Map(dest => dest.Protein,  src => src.Protein)
             .Map(dest => dest.Fat,      src => src.Fat)
             .Map(dest => dest.Carbs,    src => src.Carbs)
+            .Map(dest => dest.Salt,     src => src.Salt)
             .Map(dest => dest.Price,    src => src.Price)
             .IgnoreNonMapped(true); // не чіпати поля яких немає в NutritionPer100G
 

@@ -19,6 +19,7 @@ public class RecipeDto
     public float Protein { get; set; }
     public float Fat { get; set; }
     public float Carbs { get; set; }
+    public float Salt { get; set; }
     public ICollection<RecipeStepDto> Steps { get; set; } = [];
 
     public string? UserId { get; set; }

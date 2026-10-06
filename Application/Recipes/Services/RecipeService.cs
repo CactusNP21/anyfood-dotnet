@@ -72,6 +72,7 @@ public class RecipeService(
             Protein = nutrition.Protein,
             Fat = nutrition.Fat,
             Carbs = nutrition.Carbs,
+            Salt = nutrition.Salt,
             UserId = request.UserId,
             IsSystem = isSystem,
             Steps = steps,
@@ -202,6 +203,7 @@ public class RecipeService(
             Protein = recipe.Protein,
             Fat = recipe.Fat,
             Carbs = recipe.Carbs,
+            Salt = recipe.Salt,
             UserId = recipe.UserId,
             User = recipe.User is null ? null : new UserDto
             {
@@ -227,7 +229,7 @@ public class RecipeService(
     private static NutritionPer100G CalculateNutritionPer100G(
         CreateRecipeRequest request, IReadOnlyList<Product> products)
     {
-        float calories = 0, protein = 0, fat = 0, carbs = 0, totalPrice = 0;
+        float calories = 0, protein = 0, fat = 0, carbs = 0, salt = 0, totalPrice = 0;
 
         foreach (var ingredient in request.RecipeProducts)
         {
@@ -238,6 +240,7 @@ public class RecipeService(
             protein += (float)product.Protein * ratio;
             fat += (float)product.Fat * ratio;
             carbs += (float)product.Carbs * ratio;
+            salt += (float)product.Salt * ratio;
             totalPrice += (float)product.Price * ratio;
         }
 
@@ -245,7 +248,7 @@ public class RecipeService(
 
         return new NutritionPer100G(
             calories * per100, protein * per100,
-            fat * per100, carbs * per100, totalPrice * per100);
+            fat * per100, carbs * per100, salt * per100, totalPrice * per100);
     }
 
     public async Task<RecipeDto> UpdateAsync(int id, UpdateRecipeRequest request)

@@ -2,7 +2,7 @@
 
 This guide is for implementing the Food Diary feature in the Angular frontend against the AnyFood .NET API. Backend source: `API/Controllers/FoodDiaryController.cs`, `Application/FoodDiary/`.
 
-The food diary tracks what the user ate on each calendar day, totals calories, protein, fat and carbs, and compares them with that day's calorie goal.
+The food diary tracks what the user ate on each calendar day, totals calories, protein, fat, carbs and salt, and compares them with that day's calorie goal.
 
 ## Conventions
 
@@ -35,6 +35,7 @@ export interface FoodDiaryEntry {
   protein: number;
   fat: number;
   carbs: number;
+  salt: number;
 }
 
 export interface FoodDiaryDay {
@@ -45,6 +46,7 @@ export interface FoodDiaryDay {
   totalProtein: number;
   totalFat: number;
   totalCarbs: number;
+  totalSalt: number;
   entries: FoodDiaryEntry[];  // sorted by time
 }
 

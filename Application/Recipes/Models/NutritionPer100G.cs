@@ -5,4 +5,5 @@ public record NutritionPer100G(
     float Protein,
     float Fat,
     float Carbs,
+    float Salt,
     float Price);

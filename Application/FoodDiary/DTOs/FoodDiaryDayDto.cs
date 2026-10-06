@@ -9,6 +9,7 @@ public class FoodDiaryDayDto
     public float TotalProtein { get; set; }
     public float TotalFat { get; set; }
     public float TotalCarbs { get; set; }
+    public float TotalSalt { get; set; }
 
     public ICollection<FoodDiaryEntryDto> Entries { get; set; } = [];
 }
@@ -26,6 +27,7 @@ public class FoodDiaryEntryDto
     public float Protein { get; set; }
     public float Fat { get; set; }
     public float Carbs { get; set; }
+    public float Salt { get; set; }
 }
 
 public class FoodDiaryDaySummaryDto
@@ -37,4 +39,5 @@ public class FoodDiaryDaySummaryDto
     public float TotalProtein { get; set; }
     public float TotalFat { get; set; }
     public float TotalCarbs { get; set; }
+    public float TotalSalt { get; set; }
 }
