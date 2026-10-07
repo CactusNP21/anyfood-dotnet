@@ -11,6 +11,6 @@ public interface IRecipeService
     
     Task<IReadOnlyList<RecipeDto>> GetAllAsync();
     Task<RecipeDto> GetByIdAsync(int id);
-    Task<RecipeDto> UpdateAsync(int id, UpdateRecipeRequest request);
-    Task DeleteAsync(int id);
+    Task<RecipeDto> UpdateAsync(int id, UpdateRecipeRequest request, bool isAdmin);
+    Task DeleteAsync(int id, string? userId, bool isAdmin);
 };

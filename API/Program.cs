@@ -39,6 +39,7 @@ using Infrastructure.Persistence.Interceptors;
 using Infrastructure.Products;
 using Infrastructure.RecipeCategories;
 using Infrastructure.Recipes;
+using Infrastructure.Images;
 using Infrastructure.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -160,6 +161,8 @@ builder.Services.AddScoped<IFoodDiaryService, FoodDiaryService>();
 
 builder.Services.AddSingleton<BackgroundImageQueue>();
 builder.Services.AddScoped<IImageStorageService, ImageProcessingService>();
+builder.Services.AddScoped<IImageUsageRepository, ImageUsageRepository>();
+builder.Services.AddScoped<IImageCleanupService, ImageCleanupService>();
 builder.Services.AddHostedService<ImageProcessingWorker>();
 
 

@@ -18,7 +18,8 @@ public class RecipeService(
     IRecipeRepository repository,
     IImageStorageService imageStorageService,
     IProductRepository productRepository,
-    IRecipeCategoryRepository recipeCategoryRepository) : IRecipeService
+    IRecipeCategoryRepository recipeCategoryRepository,
+    IImageCleanupService imageCleanupService) : IRecipeService
 {
     private static readonly int[] MainImageWidths = [500, 1200];
     private static readonly int[] StepImageWidths = [500];
@@ -28,7 +29,7 @@ public class RecipeService(
         var productIds = request.RecipeProducts.Select(i => i.ProductId).ToList();
         var products = await productRepository.GetByBatchIdAsync(productIds);
 
-        ValidateRecipeCanBeCreated(request, products);
+        ValidateIngredients(request.RecipeProducts, products);
         ValidateImages(request);
 
         var mainImageUrl = await ProcessMainImageAsync(request);
@@ -37,7 +38,7 @@ public class RecipeService(
         var categoriesIds = request.RecipeCategories.Select(i => i.Id).ToList();
         var categories = await recipeCategoryRepository.GetByBatchIdAsync(categoriesIds);
         
-        var nutrition = CalculateNutritionPer100G(request, products);
+        var nutrition = CalculateNutritionPer100G(request.RecipeProducts, products);
         var recipe = CreateRecipeFromRequest(request, nutrition, categories, isAdmin, mainImageUrl, steps);
 
         var created = await repository.CreateRecipeAsync(recipe);
@@ -140,15 +141,18 @@ public class RecipeService(
     }
 
 
-    private static void ValidateRecipeCanBeCreated(CreateRecipeRequest request, IReadOnlyList<Product> products)
+    private static void ValidateIngredients(ICollection<RecipeIngredientDto> ingredients, IReadOnlyList<Product> products)
     {
-        if (request.RecipeProducts.Count == 0)
+        if (ingredients.Count == 0)
             throw new InvalidOperationException("Рецепт повинен містити хоча б один інгредієнт.");
         
-        if (request.RecipeProducts.Any(rp => rp.Weight <= 0))
+        if (ingredients.Any(rp => rp.Weight <= 0))
             throw new InvalidOperationException("Вага кожного інгредієнта повинна бути більше 0.");
 
-        var missingIds = request.RecipeProducts
+        if (ingredients.GroupBy(rp => rp.ProductId).Any(g => g.Count() > 1))
+            throw new InvalidOperationException("Кожен продукт може бути в рецепті лише один раз.");
+
+        var missingIds = ingredients
             .Select(rp => rp.ProductId)
             .Except(products.Select(p => p.Id))
             .ToList();
@@ -176,6 +180,7 @@ public class RecipeService(
                 return productDto;
             })
             .ToList();
+        dto.Steps = dto.Steps.OrderBy(s => s.Order).ToList();
 
         return dto;
     }
@@ -227,11 +232,11 @@ public class RecipeService(
     }
 
     private static NutritionPer100G CalculateNutritionPer100G(
-        CreateRecipeRequest request, IReadOnlyList<Product> products)
+        ICollection<RecipeIngredientDto> ingredients, IReadOnlyList<Product> products)
     {
         float calories = 0, protein = 0, fat = 0, carbs = 0, salt = 0, totalPrice = 0;
 
-        foreach (var ingredient in request.RecipeProducts)
+        foreach (var ingredient in ingredients)
         {
             var product = products.First(p => p.Id == ingredient.ProductId);
             var ratio = ingredient.Weight / 100f;
@@ -244,16 +249,138 @@ public class RecipeService(
             totalPrice += (float)product.Price * ratio;
         }
 
-        var per100 = 100f / request.RecipeProducts.Sum(r => r.Weight);
+        var per100 = 100f / ingredients.Sum(r => r.Weight);
 
         return new NutritionPer100G(
             calories * per100, protein * per100,
             fat * per100, carbs * per100, salt * per100, totalPrice * per100);
     }
 
-    public async Task<RecipeDto> UpdateAsync(int id, UpdateRecipeRequest request)
+    public async Task<RecipeDto> UpdateAsync(int id, UpdateRecipeRequest request, bool isAdmin)
     {
-        throw new NotImplementedException();
+        var recipe = await repository.GetByIdAsync(id) ?? throw new KeyNotFoundException("Рецепт не знайдено");
+        EnsureCanModify(recipe, request.UserId, isAdmin, "Ви можете редагувати лише власні рецепти.");
+
+        var productIds = request.RecipeProducts.Select(i => i.ProductId).ToList();
+        var products = await productRepository.GetByBatchIdAsync(productIds);
+
+        ValidateIngredients(request.RecipeProducts, products);
+        ValidateUpdateSteps(request, recipe);
+
+        var previousImages = CollectImageUrls(recipe);
+
+        // Нові файли зберігаємо лише після всіх перевірок
+        if (request.Image is not null)
+        {
+            EnsureValidImage(request.Image, "Головне зображення рецепту пошкоджене або має непідтримуваний формат.");
+            recipe.ImageUrl = await SaveImageAsync(request.Image, MainImageWidths);
+        }
+
+        await ApplyStepsAsync(recipe, request.Steps);
+        ApplyIngredients(recipe, request.RecipeProducts);
+
+        var categoryIds = request.RecipeCategories.Select(c => c.Id).ToList();
+        var categories = await recipeCategoryRepository.GetByBatchIdAsync(categoryIds);
+        ApplyCategories(recipe, categories);
+
+        var nutrition = CalculateNutritionPer100G(request.RecipeProducts, products);
+        recipe.Name = request.Name;
+        recipe.Portions = request.Portions ?? recipe.Portions;
+        recipe.Description = request.Description;
+        recipe.Duration = request.Duration;
+        recipe.Price = nutrition.Price;
+        recipe.Calories = nutrition.Calories;
+        recipe.Protein = nutrition.Protein;
+        recipe.Fat = nutrition.Fat;
+        recipe.Carbs = nutrition.Carbs;
+        recipe.Salt = nutrition.Salt;
+
+        await repository.SaveChangesAsync();
+        await imageCleanupService.DeleteUnusedAsync(previousImages);
+
+        return await GetByIdAsync(id);
+    }
+
+    private static void ValidateUpdateSteps(UpdateRecipeRequest request, Recipe recipe)
+    {
+        if (request.Steps.GroupBy(s => s.Order).Any(g => g.Count() > 1))
+            throw new InvalidOperationException("Порядкові номери кроків не можуть повторюватися.");
+
+        // Залишити можна лише зображення, яке вже належить крокам цього рецепту
+        var existingImages = recipe.Steps
+            .Where(s => s.ImageUrl is not null)
+            .Select(s => s.ImageUrl!)
+            .ToHashSet();
+
+        foreach (var step in request.Steps)
+        {
+            if (step.Image is not null)
+                EnsureValidImage(step.Image, $"Зображення кроку {step.Order} пошкоджене або має непідтримуваний формат.");
+            else if (!string.IsNullOrEmpty(step.ImageUrl) && !existingImages.Contains(step.ImageUrl))
+                throw new InvalidOperationException($"Зображення кроку {step.Order} не належить цьому рецепту.");
+        }
+    }
+
+    // Кроки зіставляємо за Order: оновлюємо наявні, видаляємо зайві, додаємо нові
+    private async Task ApplyStepsAsync(Recipe recipe, UpdateRecipeStepDto[] steps)
+    {
+        var requested = steps.ToDictionary(s => s.Order);
+
+        foreach (var step in recipe.Steps.Where(s => !requested.ContainsKey(s.Order)).ToList())
+            recipe.Steps.Remove(step);
+
+        foreach (var dto in steps)
+        {
+            var imageUrl = dto.Image is not null
+                ? await SaveImageAsync(dto.Image, StepImageWidths)
+                : string.IsNullOrEmpty(dto.ImageUrl) ? null : dto.ImageUrl;
+
+            var step = recipe.Steps.FirstOrDefault(s => s.Order == dto.Order);
+            if (step is null)
+            {
+                step = new RecipeStep { Order = dto.Order, Description = dto.Description };
+                recipe.Steps.Add(step);
+            }
+
+            step.Description = dto.Description;
+            step.Timer = dto.Timer;
+            step.ImageUrl = imageUrl;
+        }
+    }
+
+    // RecipeProduct має складений ключ (RecipeId, ProductId), тому не перестворюємо наявні рядки
+    private static void ApplyIngredients(Recipe recipe, ICollection<RecipeIngredientDto> ingredients)
+    {
+        var weights = ingredients.ToDictionary(i => i.ProductId, i => i.Weight);
+
+        foreach (var rp in recipe.RecipeProducts.Where(rp => !weights.ContainsKey(rp.ProductId)).ToList())
+            recipe.RecipeProducts.Remove(rp);
+
+        foreach (var rp in recipe.RecipeProducts)
+            rp.Weight = weights[rp.ProductId];
+
+        var existingIds = recipe.RecipeProducts.Select(rp => rp.ProductId).ToHashSet();
+        foreach (var (productId, weight) in weights.Where(w => !existingIds.Contains(w.Key)))
+            recipe.RecipeProducts.Add(new RecipeProduct { ProductId = productId, Weight = weight });
+    }
+
+    private static void ApplyCategories(Recipe recipe, IReadOnlyList<RecipeCategory> categories)
+    {
+        var newIds = categories.Select(c => c.Id).ToHashSet();
+
+        foreach (var category in recipe.RecipeCategories.Where(c => !newIds.Contains(c.Id)).ToList())
+            recipe.RecipeCategories.Remove(category);
+
+        var existingIds = recipe.RecipeCategories.Select(c => c.Id).ToHashSet();
+        foreach (var category in categories.Where(c => !existingIds.Contains(c.Id)))
+            recipe.RecipeCategories.Add(category);
+    }
+
+    private async Task<string> SaveImageAsync(byte[] bytes, int[] widths)
+    {
+        await using var ms = new MemoryStream(bytes);
+        var result = await imageStorageService.SaveAsync(ms, widths);
+        return result.VariantUrls[widths.Max()];
     }
 
     public async Task SaveRecipe(int recipeId, string userId)
@@ -263,8 +390,29 @@ public class RecipeService(
     }
 
 
-    public async Task DeleteAsync(int id)
+    // Кроки, інгредієнти, категорії та збережені рецепти видаляються каскадно в БД
+    public async Task DeleteAsync(int id, string? userId, bool isAdmin)
     {
-        throw new NotImplementedException();
+        var recipe = await repository.GetByIdAsync(id) ?? throw new KeyNotFoundException("Рецепт не знайдено");
+        EnsureCanModify(recipe, userId, isAdmin, "Ви можете видаляти лише власні рецепти.");
+
+        if (await repository.HasDayPlanEntriesAsync(id))
+            throw new InvalidOperationException("Неможливо видалити рецепт, який використовується в планах на день.");
+
+        if (await repository.HasDiaryEntriesAsync(id))
+            throw new InvalidOperationException("Неможливо видалити рецепт, який є в щоденнику харчування.");
+
+        var images = CollectImageUrls(recipe);
+        await repository.DeleteAsync(recipe);
+        await imageCleanupService.DeleteUnusedAsync(images);
+    }
+
+    private static List<string?> CollectImageUrls(Recipe recipe)
+        => [recipe.ImageUrl, ..recipe.Steps.Select(s => s.ImageUrl)];
+
+    private static void EnsureCanModify(Recipe recipe, string? userId, bool isAdmin, string message)
+    {
+        if (!isAdmin && (recipe.UserId is null || recipe.UserId != userId))
+            throw new UnauthorizedAccessException(message);
     }
 }

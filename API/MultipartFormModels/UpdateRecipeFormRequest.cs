@@ -3,30 +3,23 @@ using Application.Recipes.DTOs;
 
 namespace API.MultipartFormModels;
 
-public class CreateRecipeFormRequest
+public class UpdateRecipeFormRequest
 {
     public required string Name { get; set; }
-    public string? ImageUrl { get; set; }
-    public IFormFile? Image { get; set; }
+    public IFormFile? Image { get; set; } // не передано — залишається поточне зображення
     public required ICollection<RecipeIngredientDto> RecipeProducts { get; set; }
     public ICollection<RecipeCategoryFormDto> RecipeCategories { get; set; } = [];
-    public required int Portions { get; set; }
+    public int? Portions { get; set; } // не використовується в розрахунках; не передано — залишається поточне
     public string Description { get; set; } = string.Empty;
     public int Duration { get; set; }
-    public RecipeStepFormDto[] Steps { get; set; } = [];
+    public UpdateRecipeStepFormDto[] Steps { get; set; } = [];
 }
 
-// Сервер використовує лише Id категорії; Name можна не передавати
-public class RecipeCategoryFormDto
-{
-    public int Id { get; set; }
-    public string? Name { get; set; }
-}
-
-public class RecipeStepFormDto
+public class UpdateRecipeStepFormDto
 {
     public int Order { get; set; }
     public string Description { get; set; } = string.Empty;
     public int Timer { get; set; }
     public IFormFile? Image { get; set; }
+    public string? ImageUrl { get; set; }
 }

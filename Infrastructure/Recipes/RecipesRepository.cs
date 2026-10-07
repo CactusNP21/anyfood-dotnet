@@ -55,6 +55,14 @@ public class RecipesRepository(AppDbContext ctx): IRecipeRepository
         return recipe;
     }
 
+    public async Task SaveChangesAsync() => await ctx.SaveChangesAsync();
+
+    public async Task<bool> HasDayPlanEntriesAsync(int id)
+        => await ctx.DayPlanEntries.AnyAsync(e => e.RecipeId == id);
+
+    public async Task<bool> HasDiaryEntriesAsync(int id)
+        => await ctx.FoodDiaryEntries.AnyAsync(e => e.RecipeId == id);
+
     public async Task DeleteAsync(Recipe recipe)
     {
         ctx.Recipes.Remove(recipe);

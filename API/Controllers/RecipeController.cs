@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text.Json;
 using API.MultipartFormModels;
+using Application.RecipeCategories.DTOs;
 using Application.Recipes.DTOs;
 using Application.Recipes.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -49,7 +50,7 @@ public class RecipeController(IRecipeService service) : ControllerBase
                 await s.Image.CopyToAsync(ms);
                 stepImage = ms.ToArray();
             }
-            steps.Add(new CreateRecipeStepDto { Order = s.Order, Description = s.Description, Image = stepImage });
+            steps.Add(new CreateRecipeStepDto { Order = s.Order, Description = s.Description, Timer = s.Timer, Image = stepImage });
         }
 
         var request = new CreateRecipeRequest
@@ -57,7 +58,7 @@ public class RecipeController(IRecipeService service) : ControllerBase
             Name = form.Name,
             Image = mainImage,
             RecipeProducts = form.RecipeProducts,
-            RecipeCategories = form.RecipeCategories,
+            RecipeCategories = ToCategoryDtos(form.RecipeCategories),
             Portions = form.Portions,
             Description = form.Description,
             Duration = form.Duration,
@@ -78,19 +79,56 @@ public class RecipeController(IRecipeService service) : ControllerBase
 
     [HttpPut("{id:int}")]
     [Authorize]
-    public async Task<ActionResult<RecipeDto>> Update(int id, UpdateRecipeRequest request)
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<RecipeDto>> Update(int id, [FromForm] UpdateRecipeFormRequest form)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        request.UserId = userId;
+        var steps = new List<UpdateRecipeStepDto>();
+        foreach (var s in form.Steps)
+        {
+            steps.Add(new UpdateRecipeStepDto
+            {
+                Order = s.Order,
+                Description = s.Description,
+                Timer = s.Timer,
+                Image = await ReadFileAsync(s.Image),
+                ImageUrl = s.ImageUrl,
+            });
+        }
 
-        var recipe = await service.UpdateAsync(id, request);
+        var request = new UpdateRecipeRequest
+        {
+            Name = form.Name,
+            Image = await ReadFileAsync(form.Image),
+            RecipeProducts = form.RecipeProducts,
+            RecipeCategories = ToCategoryDtos(form.RecipeCategories),
+            Portions = form.Portions,
+            Description = form.Description,
+            Duration = form.Duration,
+            Steps = steps.ToArray(),
+            UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+        };
+
+        var recipe = await service.UpdateAsync(id, request, User.IsInRole("Admin"));
         return Ok(recipe);
     }
 
+    private static List<RecipeCategoryDto> ToCategoryDtos(IEnumerable<RecipeCategoryFormDto> categories)
+        => categories.Select(c => new RecipeCategoryDto { Id = c.Id, Name = c.Name ?? string.Empty }).ToList();
+
+    private static async Task<byte[]?> ReadFileAsync(IFormFile? file)
+    {
+        if (file is null) return null;
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        return ms.ToArray();
+    }
+
     [HttpDelete("{id:int}")]
+    [Authorize]
     public async Task<IActionResult> Delete(int id)
     {
-        await service.DeleteAsync(id);
+        await service.DeleteAsync(id, User.FindFirstValue(ClaimTypes.NameIdentifier), User.IsInRole("Admin"));
         return NoContent();
     }
 
